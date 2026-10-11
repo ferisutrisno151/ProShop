@@ -21,11 +21,9 @@
             background-color: rgba(0, 0, 0, 0.5);
             transition: opacity 0.3s ease;
         }
-        /* Mencegah teks bertumpuk / warptext di dalam kolom tabel */
         table th, table td {
             white-space: nowrap;
         }
-        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -61,11 +59,17 @@
                     <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-lg">
                         T
                     </div>
-                    <h1 class="text-lg font-bold text-slate-800 hidden sm:block">TokoKita <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-normal">Realtime</span></h1>
+                    <div>
+                        <h1 class="text-lg font-bold text-slate-800 leading-tight">TokoKita</h1>
+                        <div class="flex items-center space-x-1.5">
+                            <span id="firebase-status-dot" class="w-2 h-2 rounded-full bg-amber-500"></span>
+                            <span id="firebase-status-text" class="text-xxs text-slate-400">Menghubungkan...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Header Action Controls (Refresh at extreme top-right) -->
+            <!-- Header Action Controls -->
             <div class="flex items-center space-x-2">
                 <button id="btn-export-excel" class="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition shadow-sm">
                     <i class="fas fa-file-excel"></i>
@@ -118,7 +122,7 @@
                 </button>
             </nav>
 
-            <!-- Data Management & Share placed right under Stok & Laba -->
+            <!-- Data Management & Share -->
             <div class="p-3 border-t border-slate-800 space-y-2">
                 <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Manajemen Data & Share</div>
                 <button id="btn-export-json" class="w-full flex items-center justify-between px-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 rounded-lg transition">
@@ -156,9 +160,7 @@
 
         <!-- VIEW 1: DASHBOARD -->
         <section id="view-dashboard" class="view-section space-y-6">
-            <!-- Summary Cards Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <!-- Card Pembelian -->
                 <div onclick="openDashboardModal('pembelian')" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition cursor-pointer group">
                     <div class="flex justify-between items-start">
                         <div>
@@ -175,7 +177,6 @@
                     </div>
                 </div>
 
-                <!-- Card Penjualan -->
                 <div onclick="openDashboardModal('penjualan')" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition cursor-pointer group">
                     <div class="flex justify-between items-start">
                         <div>
@@ -192,7 +193,6 @@
                     </div>
                 </div>
 
-                <!-- Card Stok Barang -->
                 <div onclick="openDashboardModal('stok')" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition cursor-pointer group">
                     <div class="flex justify-between items-start">
                         <div>
@@ -209,7 +209,6 @@
                     </div>
                 </div>
 
-                <!-- Card Laba -->
                 <div onclick="openDashboardModal('laba')" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition cursor-pointer group">
                     <div class="flex justify-between items-start">
                         <div>
@@ -229,7 +228,6 @@
 
             <!-- Charts Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Bar Chart: Pembelian vs Penjualan -->
                 <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="font-bold text-slate-800 text-base">Grafik Pembelian vs Penjualan</h3>
@@ -240,7 +238,6 @@
                     </div>
                 </div>
 
-                <!-- Donut Chart: Stok Barang -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="font-bold text-slate-800 text-base">Komposisi Stok Barang</h3>
@@ -266,7 +263,6 @@
                 </button>
             </div>
 
-            <!-- Table Pembelian with Horizontal Scroll & Nowrap -->
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[800px] text-left text-xs md:text-sm">
@@ -303,7 +299,6 @@
                 </button>
             </div>
 
-            <!-- Table Penjualan with Horizontal Scroll & Nowrap -->
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[800px] text-left text-xs md:text-sm">
@@ -336,7 +331,6 @@
                 </div>
             </div>
 
-            <!-- Tabel Stok Barang with Horizontal Scroll & Nowrap -->
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
                 <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                     <h3 class="font-bold text-slate-800 text-sm">Status Inventaris Barang</h3>
@@ -362,7 +356,6 @@
                 </div>
             </div>
 
-            <!-- Panel Tombol Laba -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <button onclick="toggleLabaSection('harian')" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:border-indigo-500 transition text-left flex items-center justify-between group">
                     <div class="flex items-center space-x-3">
@@ -391,10 +384,9 @@
                 </button>
             </div>
 
-            <!-- Tabel Laba Per Hari (Collapsible) with Horizontal Scroll & Nowrap -->
             <div id="section-laba-harian" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hidden">
                 <div class="px-5 py-4 border-b border-slate-100 bg-indigo-50/50 flex justify-between items-center">
-                    <h3 class="font-bold text-indigo-900 text-sm"><i class="fas fa-calendar-day mr-2"></i>Laba Per Hari (Hari Ini / All Days)</h3>
+                    <h3 class="font-bold text-indigo-900 text-sm"><i class="fas fa-calendar-day mr-2"></i>Laba Per Hari</h3>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[700px] text-left text-xs md:text-sm">
@@ -407,14 +399,11 @@
                                 <th class="py-3 px-4 text-right">Total Laba</th>
                             </tr>
                         </thead>
-                        <tbody id="tbody-laba-harian" class="divide-y divide-slate-100 text-slate-700">
-                            <!-- Populated dynamically -->
-                        </tbody>
+                        <tbody id="tbody-laba-harian" class="divide-y divide-slate-100 text-slate-700"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Tabel Laba Per Bulan (Collapsible) with Horizontal Scroll & Nowrap -->
             <div id="section-laba-bulanan" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hidden">
                 <div class="px-5 py-4 border-b border-slate-100 bg-purple-50/50 flex justify-between items-center">
                     <h3 class="font-bold text-purple-900 text-sm"><i class="fas fa-calendar-alt mr-2"></i>Laba Per Bulan</h3>
@@ -430,9 +419,7 @@
                                 <th class="py-3 px-4 text-right">Total Laba</th>
                             </tr>
                         </thead>
-                        <tbody id="tbody-laba-bulanan" class="divide-y divide-slate-100 text-slate-700">
-                            <!-- Populated dynamically -->
-                        </tbody>
+                        <tbody id="tbody-laba-bulanan" class="divide-y divide-slate-100 text-slate-700"></tbody>
                     </table>
                 </div>
             </div>
@@ -440,7 +427,7 @@
 
     </main>
 
-    <!-- MODAL POPUP PEMBELIAN (MULTI-ITEM) -->
+    <!-- MODAL POPUP PEMBELIAN -->
     <div id="modal-pembelian" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden">
         <div class="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
@@ -452,7 +439,6 @@
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal Pembelian</label>
                     <input type="date" id="pembelian-tgl" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
-
                 <div>
                     <div class="flex justify-between items-center mb-2">
                         <label class="block text-xs font-semibold text-slate-600">Daftar Item Pembelian</label>
@@ -461,10 +447,7 @@
                             <span>Tambah Item</span>
                         </button>
                     </div>
-                    
-                    <div class="space-y-3" id="pembelian-items-container">
-                        <!-- Dynamic item rows inserted here -->
-                    </div>
+                    <div class="space-y-3" id="pembelian-items-container"></div>
                 </div>
             </div>
             <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end space-x-3">
@@ -474,7 +457,7 @@
         </div>
     </div>
 
-    <!-- MODAL POPUP PENJUALAN (MULTI-ITEM) -->
+    <!-- MODAL POPUP PENJUALAN -->
     <div id="modal-penjualan" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden">
         <div class="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
@@ -486,7 +469,6 @@
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal Penjualan</label>
                     <input type="date" id="penjualan-tgl" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
                 </div>
-
                 <div>
                     <div class="flex justify-between items-center mb-2">
                         <label class="block text-xs font-semibold text-slate-600">Daftar Item Penjualan</label>
@@ -495,10 +477,7 @@
                             <span>Tambah Item</span>
                         </button>
                     </div>
-                    
-                    <div class="space-y-3" id="penjualan-items-container">
-                        <!-- Dynamic item rows inserted here -->
-                    </div>
+                    <div class="space-y-3" id="penjualan-items-container"></div>
                 </div>
             </div>
             <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end space-x-3">
@@ -515,9 +494,7 @@
                 <h3 id="modal-dash-title" class="font-bold text-slate-800 text-lg">Rincian Data</h3>
                 <button onclick="closeDashboardModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fas fa-times text-lg"></i></button>
             </div>
-            <div class="p-6 overflow-y-auto flex-1 space-y-6" id="modal-dash-content">
-                <!-- Dynamic Content Tables inserted here -->
-            </div>
+            <div class="p-6 overflow-y-auto flex-1 space-y-6" id="modal-dash-content"></div>
             <div class="px-6 py-3 border-t border-slate-200 bg-slate-50 flex justify-end">
                 <button onclick="closeDashboardModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-xs font-medium">Tutup</button>
             </div>
@@ -526,7 +503,6 @@
 
     <!-- JAVASCRIPT LOGIC & FIREBASE CONFIGURATION -->
     <script>
-        // --- FIREBASE CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyAO7PhqkktQBH310DDFM8WD5SZRzVbX8wU",
             authDomain: "proshop-a961d.firebaseapp.com",
@@ -537,7 +513,6 @@
             databaseURL: "https://proshop-a961d-default-rtdb.firebaseio.com"
         };
 
-        // Initialize Firebase
         let db = null;
         let isFirebaseOnline = false;
 
@@ -546,10 +521,9 @@
             db = firebase.database();
             isFirebaseOnline = true;
         } catch (e) {
-            console.warn("Firebase tidak terhubung. Berjalan dalam mode LocalStorage.", e);
+            console.warn("Firebase gagal diinisialisasi:", e);
         }
 
-        // --- GLOBAL APP STATE ---
         let appState = {
             pembelian: [],
             penjualan: []
@@ -557,17 +531,14 @@
 
         let editingPembelianId = null;
         let editingPenjualanId = null;
-
-        // Chart instances
         let chartBarInstance = null;
         let chartDonutInstance = null;
 
-        // --- DOM INITIALIZATION ---
         document.addEventListener("DOMContentLoaded", () => {
             initNavigation();
             initSidebar();
             initPullToRefresh();
-            initFirebaseOrLocal();
+            initFirebaseSync();
             setDefaultDates();
         });
 
@@ -577,10 +548,25 @@
             document.getElementById('penjualan-tgl').value = today;
         }
 
-        // --- NAVIGATION CONTROLLER ---
+        function updateConnectionStatus(status, text) {
+            const dot = document.getElementById('firebase-status-dot');
+            const txt = document.getElementById('firebase-status-text');
+            if (!dot || !txt) return;
+
+            if (status === 'connected') {
+                dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+                txt.innerText = text;
+            } else if (status === 'syncing') {
+                dot.className = "w-2 h-2 rounded-full bg-blue-500 animate-ping";
+                txt.innerText = text;
+            } else {
+                dot.className = "w-2 h-2 rounded-full bg-amber-500";
+                txt.innerText = text;
+            }
+        }
+
         function initNavigation() {
-            const navItems = document.querySelectorAll('.nav-item');
-            navItems.forEach(item => {
+            document.querySelectorAll('.nav-item').forEach(item => {
                 item.addEventListener('click', () => {
                     const target = item.getAttribute('data-target');
                     showView(target);
@@ -601,11 +587,9 @@
                     item.classList.remove('bg-slate-800', 'text-white');
                 }
             });
-
             renderAll();
         }
 
-        // --- SIDEBAR OVERLAY CONTROLLER ---
         function initSidebar() {
             const sidebar = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebar-backdrop');
@@ -616,7 +600,6 @@
                 sidebar.classList.remove('-translate-x-full');
                 backdrop.classList.remove('hidden');
             }
-
             function closeSidebar() {
                 sidebar.classList.add('-translate-x-full');
                 backdrop.classList.add('hidden');
@@ -625,22 +608,17 @@
             btnHamburger.addEventListener('click', openSidebar);
             btnClose.addEventListener('click', closeSidebar);
             backdrop.addEventListener('click', closeSidebar);
-
             window.closeSidebar = closeSidebar;
 
-            // Sidebar Buttons Event Handlers
             document.getElementById('btn-export-json').addEventListener('click', exportJSON);
             document.getElementById('input-import-json').addEventListener('change', importJSON);
             document.getElementById('btn-share-link').addEventListener('click', shareApp);
             document.getElementById('btn-download-apk').addEventListener('click', downloadAPK);
-
-            // Header Buttons Event Handlers
             document.getElementById('btn-header-refresh').addEventListener('click', manualRefresh);
             document.getElementById('btn-export-excel').addEventListener('click', exportExcel);
             document.getElementById('input-import-excel').addEventListener('change', importExcel);
         }
 
-        // --- PULL TO REFRESH LOGIC ---
         function initPullToRefresh() {
             let touchStartY = 0;
             let touchMoveY = 0;
@@ -650,11 +628,8 @@
             const threshold = 100;
 
             window.addEventListener('touchstart', (e) => {
-                if (window.scrollY === 0) {
-                    touchStartY = e.touches[0].clientY;
-                } else {
-                    touchStartY = 0;
-                }
+                if (window.scrollY === 0) touchStartY = e.touches[0].clientY;
+                else touchStartY = 0;
             }, { passive: true });
 
             window.addEventListener('touchmove', (e) => {
@@ -669,7 +644,7 @@
 
                     if (distance > threshold) {
                         pullIcon.style.transform = 'rotate(180deg)';
-                        pullText.innerText = 'Lepaskan untuk memperbarui data...';
+                        pullText.innerText = 'Lepaskan untuk memperbarui...';
                     } else {
                         pullIcon.style.transform = 'rotate(0deg)';
                         pullText.innerText = 'Tarik ke bawah untuk memperbarui...';
@@ -693,33 +668,50 @@
             });
         }
 
-        // --- FIREBASE & LOCAL STORAGE DATA SYNC (SAFE LOAD) ---
-        function initFirebaseOrLocal() {
-            loadFromLocalStorage(); // Muat data lokal terlebih dahulu agar tidak pernah kosong
+        // --- REALTIME SYNC FIREBASE ---
+        function initFirebaseSync() {
+            loadFromLocalStorage();
 
             if (isFirebaseOnline && db) {
+                updateConnectionStatus('syncing', 'Menghubungkan ke Cloud...');
+                
                 db.ref('tokokita_data').on('value', (snapshot) => {
                     const val = snapshot.val();
-                    if (val && (val.pembelian || val.penjualan)) {
+                    if (val) {
                         appState.pembelian = val.pembelian || [];
                         appState.penjualan = val.penjualan || [];
                         saveToLocalStorage();
                         renderAll();
-                    } else if (!val && (appState.pembelian.length > 0 || appState.penjualan.length > 0)) {
-                        // Jika firebase kosong tapi lokal ada isinya, sinkronkan ke firebase
-                        saveData();
+                        updateConnectionStatus('connected', 'Realtime Aktif');
+                    } else {
+                        // Jika cloud kosong tapi local ada isinya, unggah ke cloud
+                        if (appState.pembelian.length > 0 || appState.penjualan.length > 0) {
+                            saveData();
+                        }
+                        updateConnectionStatus('connected', 'Cloud Siap');
                     }
+                }, (error) => {
+                    console.error("Firebase sync error:", error);
+                    updateConnectionStatus('offline', 'Mode Offline (Cek Rules)');
                 });
+            } else {
+                updateConnectionStatus('offline', 'Mode Offline Local');
             }
         }
 
         function saveData() {
             saveToLocalStorage();
             if (isFirebaseOnline && db) {
+                updateConnectionStatus('syncing', 'Menyimpan...');
                 db.ref('tokokita_data').set({
                     pembelian: appState.pembelian,
                     penjualan: appState.penjualan
-                }).catch(err => console.warn("Firebase save error:", err));
+                }).then(() => {
+                    updateConnectionStatus('connected', 'Realtime Aktif');
+                }).catch(err => {
+                    console.error("Save error:", err);
+                    updateConnectionStatus('offline', 'Gagal Simpan (Cek Rules)');
+                });
             }
             renderAll();
         }
@@ -741,33 +733,35 @@
             const icon = document.getElementById('refresh-icon');
             if (icon) icon.classList.add('fa-spin');
             
-            loadFromLocalStorage();
             if (isFirebaseOnline && db) {
                 db.ref('tokokita_data').once('value').then((snapshot) => {
                     const val = snapshot.val();
-                    if (val && (val.pembelian || val.penjualan)) {
+                    if (val) {
                         appState.pembelian = val.pembelian || [];
                         appState.penjualan = val.penjualan || [];
                         saveToLocalStorage();
                     }
                     renderAll();
                     if (icon) icon.classList.remove('fa-spin');
+                    updateConnectionStatus('connected', 'Realtime Aktif');
                 }).catch(() => {
+                    loadFromLocalStorage();
                     if (icon) icon.classList.remove('fa-spin');
+                    updateConnectionStatus('offline', 'Offline');
                 });
             } else {
+                loadFromLocalStorage();
                 setTimeout(() => { if (icon) icon.classList.remove('fa-spin'); }, 400);
             }
         }
 
-        // --- CORE CALCULATIONS & DATA HELPER ---
+        // --- CALCULATIONS & RENDER ---
         function formatRp(number) {
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number || 0);
         }
 
         function calculateStok() {
             const map = {};
-
             appState.pembelian.forEach(item => {
                 const name = (item.namaBarang || '').trim();
                 if (!name) return;
@@ -791,61 +785,42 @@
 
             return Object.values(map).map(item => {
                 const stok = item.totalBeli - item.totalJual;
-                return {
-                    ...item,
-                    stok: stok,
-                    status: stok > 0 ? 'Tersedia' : 'Habis'
-                };
+                return { ...item, stok: stok, status: stok > 0 ? 'Tersedia' : 'Habis' };
             });
         }
 
         function calculateLabaHarian() {
             const map = {};
-
             appState.pembelian.forEach(p => {
-                const tgl = p.tglBeli;
-                if (!tgl) return;
-                if (!map[tgl]) map[tgl] = { tgl, totalBeli: 0, totalJual: 0 };
-                map[tgl].totalBeli += Number(p.totalHarga || (p.qty * p.harsat) || 0);
+                if (!p.tglBeli) return;
+                if (!map[p.tglBeli]) map[p.tglBeli] = { tgl: p.tglBeli, totalBeli: 0, totalJual: 0 };
+                map[p.tglBeli].totalBeli += Number(p.totalHarga || (p.qty * p.harsat) || 0);
             });
-
             appState.penjualan.forEach(j => {
-                const tgl = j.tglJual;
-                if (!tgl) return;
-                if (!map[tgl]) map[tgl] = { tgl, totalBeli: 0, totalJual: 0 };
-                map[tgl].totalJual += Number(j.totalHarga || (j.qty * j.harsat) || 0);
+                if (!j.tglJual) return;
+                if (!map[j.tglJual]) map[j.tglJual] = { tgl: j.tglJual, totalBeli: 0, totalJual: 0 };
+                map[j.tglJual].totalJual += Number(j.totalHarga || (j.qty * j.harsat) || 0);
             });
-
-            return Object.values(map).sort((a, b) => b.tgl.localeCompare(a.tgl)).map(item => ({
-                ...item,
-                laba: item.totalJual - item.totalBeli
-            }));
+            return Object.values(map).sort((a, b) => b.tgl.localeCompare(a.tgl)).map(item => ({ ...item, laba: item.totalJual - item.totalBeli }));
         }
 
         function calculateLabaBulanan() {
             const map = {};
-
             appState.pembelian.forEach(p => {
                 if (!p.tglBeli) return;
                 const month = p.tglBeli.substring(0, 7);
                 if (!map[month]) map[month] = { bulan: month, totalBeli: 0, totalJual: 0 };
                 map[month].totalBeli += Number(p.totalHarga || (p.qty * p.harsat) || 0);
             });
-
             appState.penjualan.forEach(j => {
                 if (!j.tglJual) return;
                 const month = j.tglJual.substring(0, 7);
                 if (!map[month]) map[month] = { bulan: month, totalBeli: 0, totalJual: 0 };
                 map[month].totalJual += Number(j.totalHarga || (j.qty * j.harsat) || 0);
             });
-
-            return Object.values(map).sort((a, b) => b.bulan.localeCompare(a.bulan)).map(item => ({
-                ...item,
-                laba: item.totalJual - item.totalBeli
-            }));
+            return Object.values(map).sort((a, b) => b.bulan.localeCompare(a.bulan)).map(item => ({ ...item, laba: item.totalJual - item.totalBeli }));
         }
 
-        // --- RENDER ALL VIEWS & CHARTS ---
         function renderAll() {
             renderDashboardCards();
             renderTablesPembelian();
@@ -870,12 +845,10 @@
         function renderTablesPembelian() {
             const tbody = document.getElementById('tbody-pembelian');
             tbody.innerHTML = '';
-
             if (appState.pembelian.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-400">Belum ada data pembelian</td></tr>`;
                 return;
             }
-
             appState.pembelian.forEach((item, index) => {
                 const total = Number(item.totalHarga || (item.qty * item.harsat) || 0);
                 tbody.innerHTML += `
@@ -899,12 +872,10 @@
         function renderTablesPenjualan() {
             const tbody = document.getElementById('tbody-penjualan');
             tbody.innerHTML = '';
-
             if (appState.penjualan.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-400">Belum ada data penjualan</td></tr>`;
                 return;
             }
-
             appState.penjualan.forEach((item, index) => {
                 const total = Number(item.totalHarga || (item.qty * item.harsat) || 0);
                 tbody.innerHTML += `
@@ -929,7 +900,6 @@
             const tbodyStok = document.getElementById('tbody-stok-main');
             const stokData = calculateStok();
             tbodyStok.innerHTML = '';
-
             if (stokData.length === 0) {
                 tbodyStok.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-400">Belum ada data stok barang</td></tr>`;
             } else {
@@ -937,7 +907,6 @@
                     const statusBadge = item.status === 'Tersedia' 
                         ? `<span class="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-semibold">Tersedia</span>`
                         : `<span class="bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-semibold">Habis</span>`;
-
                     tbodyStok.innerHTML += `
                         <tr class="hover:bg-slate-50 transition">
                             <td class="py-3 px-4 text-center">${index + 1}</td>
@@ -956,7 +925,6 @@
             const tbodyLabaHarian = document.getElementById('tbody-laba-harian');
             const labaHarian = calculateLabaHarian();
             tbodyLabaHarian.innerHTML = '';
-
             if (labaHarian.length === 0) {
                 tbodyLabaHarian.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">Belum ada transaksi</td></tr>`;
             } else {
@@ -976,7 +944,6 @@
             const tbodyLabaBulanan = document.getElementById('tbody-laba-bulanan');
             const labaBulanan = calculateLabaBulanan();
             tbodyLabaBulanan.innerHTML = '';
-
             if (labaBulanan.length === 0) {
                 tbodyLabaBulanan.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">Belum ada transaksi</td></tr>`;
             } else {
@@ -995,17 +962,13 @@
         }
 
         function toggleLabaSection(type) {
-            const secHarian = document.getElementById('section-laba-harian');
-            const secBulanan = document.getElementById('section-laba-bulanan');
-
             if (type === 'harian') {
-                secHarian.classList.toggle('hidden');
+                document.getElementById('section-laba-harian').classList.toggle('hidden');
             } else if (type === 'bulanan') {
-                secBulanan.classList.toggle('hidden');
+                document.getElementById('section-laba-bulanan').classList.toggle('hidden');
             }
         }
 
-        // --- CHARTS GENERATION (CHART.JS) ---
         function renderCharts() {
             const stokData = calculateStok();
             const labels = stokData.map(s => s.namaBarang);
@@ -1021,29 +984,15 @@
                 data: {
                     labels: labels.length ? labels : ['Belum Ada Barang'],
                     datasets: [
-                        {
-                            label: 'Pembelian (Qty)',
-                            data: dataBeli.length ? dataBeli : [0],
-                            backgroundColor: '#3b82f6',
-                            borderRadius: 6
-                        },
-                        {
-                            label: 'Penjualan (Qty)',
-                            data: dataJual.length ? dataJual : [0],
-                            backgroundColor: '#10b981',
-                            borderRadius: 6
-                        }
+                        { label: 'Pembelian (Qty)', data: dataBeli.length ? dataBeli : [0], backgroundColor: '#3b82f6', borderRadius: 6 },
+                        { label: 'Penjualan (Qty)', data: dataJual.length ? dataJual : [0], backgroundColor: '#10b981', borderRadius: 6 }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top' }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { precision: 0 } }
-                    }
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
                 }
             });
 
@@ -1056,27 +1005,21 @@
                     labels: labels.length ? labels : ['Tidak ada stok'],
                     datasets: [{
                         data: dataStok.length ? dataStok : [1],
-                        backgroundColor: [
-                            '#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'
-                        ]
+                        backgroundColor: ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6']
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom' }
-                    }
+                    plugins: { legend: { position: 'bottom' } }
                 }
             });
         }
 
-        // --- DASHBOARD DETAIL MODALS ---
         function openDashboardModal(type) {
             const modal = document.getElementById('modal-dashboard-detail');
             const title = document.getElementById('modal-dash-title');
             const content = document.getElementById('modal-dash-content');
-
             content.innerHTML = '';
             modal.classList.remove('hidden');
 
@@ -1086,56 +1029,26 @@
                     <div class="overflow-x-auto">
                         <table class="w-full min-w-[500px] text-xs md:text-sm text-left">
                             <thead class="bg-slate-100 text-slate-600 font-semibold uppercase">
-                                <tr>
-                                    <th class="p-3 text-center">No</th>
-                                    <th class="p-3">Tgl Beli</th>
-                                    <th class="p-3">Nama Barang</th>
-                                    <th class="p-3 text-center">Qty</th>
-                                    <th class="p-3 text-center">Sat</th>
-                                </tr>
+                                <tr><th class="p-3 text-center">No</th><th class="p-3">Tgl Beli</th><th class="p-3">Nama Barang</th><th class="p-3 text-center">Qty</th><th class="p-3 text-center">Sat</th></tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
-                                ${appState.pembelian.map((p, i) => `
-                                    <tr>
-                                        <td class="p-3 text-center">${i + 1}</td>
-                                        <td class="p-3">${p.tglBeli || '-'}</td>
-                                        <td class="p-3 font-semibold">${p.namaBarang}</td>
-                                        <td class="p-3 text-center">${p.qty}</td>
-                                        <td class="p-3 text-center">${p.satuan || '-'}</td>
-                                    </tr>
-                                `).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">Kosong</td></tr>'}
+                                ${appState.pembelian.map((p, i) => `<tr><td class="p-3 text-center">${i + 1}</td><td class="p-3">${p.tglBeli || '-'}</td><td class="p-3 font-semibold">${p.namaBarang}</td><td class="p-3 text-center">${p.qty}</td><td class="p-3 text-center">${p.satuan || '-'}</td></tr>`).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">Kosong</td></tr>'}
                             </tbody>
                         </table>
-                    </div>
-                `;
+                    </div>`;
             } else if (type === 'penjualan') {
                 title.innerText = 'Rincian Panel Penjualan';
                 content.innerHTML = `
                     <div class="overflow-x-auto">
                         <table class="w-full min-w-[500px] text-xs md:text-sm text-left">
                             <thead class="bg-slate-100 text-slate-600 font-semibold uppercase">
-                                <tr>
-                                    <th class="p-3 text-center">No</th>
-                                    <th class="p-3">Tgl Jual</th>
-                                    <th class="p-3">Nama Barang</th>
-                                    <th class="p-3 text-center">Qty</th>
-                                    <th class="p-3 text-center">Sat</th>
-                                </tr>
+                                <tr><th class="p-3 text-center">No</th><th class="p-3">Tgl Jual</th><th class="p-3">Nama Barang</th><th class="p-3 text-center">Qty</th><th class="p-3 text-center">Sat</th></tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
-                                ${appState.penjualan.map((j, i) => `
-                                    <tr>
-                                        <td class="p-3 text-center">${i + 1}</td>
-                                        <td class="p-3">${j.tglJual || '-'}</td>
-                                        <td class="p-3 font-semibold">${j.namaBarang}</td>
-                                        <td class="p-3 text-center">${j.qty}</td>
-                                        <td class="p-3 text-center">${j.satuan || '-'}</td>
-                                    </tr>
-                                `).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">Kosong</td></tr>'}
+                                ${appState.penjualan.map((j, i) => `<tr><td class="p-3 text-center">${i + 1}</td><td class="p-3">${j.tglJual || '-'}</td><td class="p-3 font-semibold">${j.namaBarang}</td><td class="p-3 text-center">${j.qty}</td><td class="p-3 text-center">${j.satuan || '-'}</td></tr>`).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">Kosong</td></tr>'}
                             </tbody>
                         </table>
-                    </div>
-                `;
+                    </div>`;
             } else if (type === 'stok') {
                 title.innerText = 'Rincian Panel Stok Barang';
                 const stokData = calculateStok();
@@ -1143,35 +1056,17 @@
                     <div class="overflow-x-auto">
                         <table class="w-full min-w-[550px] text-xs md:text-sm text-left">
                             <thead class="bg-slate-100 text-slate-600 font-semibold uppercase">
-                                <tr>
-                                    <th class="p-3 text-center">No</th>
-                                    <th class="p-3">Tgl Update</th>
-                                    <th class="p-3">Nama Barang</th>
-                                    <th class="p-3 text-center">Qty</th>
-                                    <th class="p-3 text-center">Sat</th>
-                                    <th class="p-3 text-center">Status</th>
-                                </tr>
+                                <tr><th class="p-3 text-center">No</th><th class="p-3">Tgl Update</th><th class="p-3">Nama Barang</th><th class="p-3 text-center">Qty</th><th class="p-3 text-center">Sat</th><th class="p-3 text-center">Status</th></tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
-                                ${stokData.map((s, i) => `
-                                    <tr>
-                                        <td class="p-3 text-center">${i + 1}</td>
-                                        <td class="p-3">${s.lastUpdate || '-'}</td>
-                                        <td class="p-3 font-semibold">${s.namaBarang}</td>
-                                        <td class="p-3 text-center font-bold">${s.stok}</td>
-                                        <td class="p-3 text-center">${s.satuan}</td>
-                                        <td class="p-3 text-center">${s.status}</td>
-                                    </tr>
-                                `).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">Kosong</td></tr>'}
+                                ${stokData.map((s, i) => `<tr><td class="p-3 text-center">${i + 1}</td><td class="p-3">${s.lastUpdate || '-'}</td><td class="p-3 font-semibold">${s.namaBarang}</td><td class="p-3 text-center font-bold">${s.stok}</td><td class="p-3 text-center">${s.satuan}</td><td class="p-3 text-center">${s.status}</td></tr>`).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">Kosong</td></tr>'}
                             </tbody>
                         </table>
-                    </div>
-                `;
+                    </div>`;
             } else if (type === 'laba') {
                 title.innerText = 'Rincian Panel Laba';
                 const labaHarian = calculateLabaHarian();
                 const labaBulanan = calculateLabaBulanan();
-
                 content.innerHTML = `
                     <div class="space-y-6">
                         <div>
@@ -1179,58 +1074,28 @@
                             <div class="overflow-x-auto border border-slate-200 rounded-xl">
                                 <table class="w-full min-w-[550px] text-xs md:text-sm text-left">
                                     <thead class="bg-indigo-50 text-indigo-900 font-semibold uppercase">
-                                        <tr>
-                                            <th class="p-3 text-center">No</th>
-                                            <th class="p-3">Tanggal</th>
-                                            <th class="p-3 text-right">Total Harga Beli</th>
-                                            <th class="p-3 text-right">Total Harga Jual</th>
-                                            <th class="p-3 text-right">Laba</th>
-                                        </tr>
+                                        <tr><th class="p-3 text-center">No</th><th class="p-3">Tanggal</th><th class="p-3 text-right">Total Harga Beli</th><th class="p-3 text-right">Total Harga Jual</th><th class="p-3 text-right">Laba</th></tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100">
-                                        ${labaHarian.map((lh, i) => `
-                                            <tr>
-                                                <td class="p-3 text-center">${i + 1}</td>
-                                                <td class="p-3 font-medium">${lh.tgl}</td>
-                                                <td class="p-3 text-right">${formatRp(lh.totalBeli)}</td>
-                                                <td class="p-3 text-right">${formatRp(lh.totalJual)}</td>
-                                                <td class="p-3 text-right font-bold text-emerald-600">${formatRp(lh.laba)}</td>
-                                            </tr>
-                                        `).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">Kosong</td></tr>'}
+                                        ${labaHarian.map((lh, i) => `<tr><td class="p-3 text-center">${i + 1}</td><td class="p-3 font-medium">${lh.tgl}</td><td class="p-3 text-right">${formatRp(lh.totalBeli)}</td><td class="p-3 text-right">${formatRp(lh.totalJual)}</td><td class="p-3 text-right font-bold text-emerald-600">${formatRp(lh.laba)}</td></tr>`).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">Kosong</td></tr>'}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-
                         <div>
                             <h4 class="font-bold text-slate-800 text-sm mb-2">Tabel Laba Per Bulan</h4>
                             <div class="overflow-x-auto border border-slate-200 rounded-xl">
                                 <table class="w-full min-w-[550px] text-xs md:text-sm text-left">
                                     <thead class="bg-purple-50 text-purple-900 font-semibold uppercase">
-                                        <tr>
-                                            <th class="p-3 text-center">No</th>
-                                            <th class="p-3">Bulan</th>
-                                            <th class="p-3 text-right">Total Harga Beli</th>
-                                            <th class="p-3 text-right">Total Harga Jual</th>
-                                            <th class="p-3 text-right">Laba</th>
-                                        </tr>
+                                        <tr><th class="p-3 text-center">No</th><th class="p-3">Bulan</th><th class="p-3 text-right">Total Harga Beli</th><th class="p-3 text-right">Total Harga Jual</th><th class="p-3 text-right">Laba</th></tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100">
-                                        ${labaBulanan.map((lb, i) => `
-                                            <tr>
-                                                <td class="p-3 text-center">${i + 1}</td>
-                                                <td class="p-3 font-medium">${lb.bulan}</td>
-                                                <td class="p-3 text-right">${formatRp(lb.totalBeli)}</td>
-                                                <td class="p-3 text-right">${formatRp(lb.totalJual)}</td>
-                                                <td class="p-3 text-right font-bold text-purple-600">${formatRp(lb.laba)}</td>
-                                            </tr>
-                                        `).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">Kosong</td></tr>'}
+                                        ${labaBulanan.map((lb, i) => `<tr><td class="p-3 text-center">${i + 1}</td><td class="p-3 font-medium">${lb.bulan}</td><td class="p-3 text-right">${formatRp(lb.totalBeli)}</td><td class="p-3 text-right">${formatRp(lb.totalJual)}</td><td class="p-3 text-right font-bold text-purple-600">${formatRp(lb.laba)}</td></tr>`).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">Kosong</td></tr>'}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }
         }
 
@@ -1238,7 +1103,6 @@
             document.getElementById('modal-dashboard-detail').classList.add('hidden');
         }
 
-        // --- PEMBELIAN POPUP & MULTI-ITEM LOGIC ---
         function openPembelianModal() {
             editingPembelianId = null;
             document.getElementById('modal-pembelian-title').innerText = 'Input Pembelian Barang';
@@ -1255,77 +1119,43 @@
         function addPembelianItemRow(data = {}) {
             const container = document.getElementById('pembelian-items-container');
             const rowId = 'row-p-' + Date.now() + Math.random().toString(36).substr(2, 4);
-
             const row = document.createElement('div');
             row.className = 'pembelian-row grid grid-cols-12 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 items-center';
             row.id = rowId;
-
             row.innerHTML = `
-                <div class="col-span-12 sm:col-span-4">
-                    <input type="text" placeholder="Nama Barang" value="${data.namaBarang || ''}" class="p-nama-barang w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div class="col-span-4 sm:col-span-2">
-                    <input type="number" placeholder="Qty" value="${data.qty || ''}" class="p-qty w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div class="col-span-4 sm:col-span-2">
-                    <input type="text" placeholder="Satuan (Pcs)" value="${data.satuan || 'Pcs'}" class="p-satuan w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div class="col-span-3 sm:col-span-3">
-                    <input type="number" placeholder="Harga Satuan" value="${data.harsat || ''}" class="p-harsat w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div class="col-span-1 text-center">
-                    <button onclick="document.getElementById('${rowId}').remove()" class="text-red-500 hover:text-red-700 p-1"><i class="fas fa-trash"></i></button>
-                </div>
+                <div class="col-span-12 sm:col-span-4"><input type="text" placeholder="Nama Barang" value="${data.namaBarang || ''}" class="p-nama-barang w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500"></div>
+                <div class="col-span-4 sm:col-span-2"><input type="number" placeholder="Qty" value="${data.qty || ''}" class="p-qty w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500"></div>
+                <div class="col-span-4 sm:col-span-2"><input type="text" placeholder="Satuan" value="${data.satuan || 'Pcs'}" class="p-satuan w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500"></div>
+                <div class="col-span-3 sm:col-span-3"><input type="number" placeholder="Harga Satuan" value="${data.harsat || ''}" class="p-harsat w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500"></div>
+                <div class="col-span-1 text-center"><button onclick="document.getElementById('${rowId}').remove()" class="text-red-500 hover:text-red-700 p-1"><i class="fas fa-trash"></i></button></div>
             `;
             container.appendChild(row);
         }
 
         function savePembelian() {
             const tglBeli = document.getElementById('pembelian-tgl').value;
-            if (!tglBeli) {
-                alert('Silakan pilih tanggal pembelian.');
-                return;
-            }
-
+            if (!tglBeli) { alert('Pilih tanggal pembelian.'); return; }
             const rows = document.querySelectorAll('.pembelian-row');
-            if (rows.length === 0) {
-                alert('Tambahkan setidaknya satu item barang.');
-                return;
-            }
+            if (rows.length === 0) { alert('Tambahkan item barang.'); return; }
 
             const newItems = [];
             let isValid = true;
-
             rows.forEach(row => {
                 const namaBarang = row.querySelector('.p-nama-barang').value.trim();
                 const qty = Number(row.querySelector('.p-qty').value);
                 const satuan = row.querySelector('.p-satuan').value.trim() || 'Pcs';
                 const harsat = Number(row.querySelector('.p-harsat').value || 0);
-
-                if (!namaBarang || !qty) {
-                    isValid = false;
-                } else {
+                if (!namaBarang || !qty) isValid = false;
+                else {
                     newItems.push({
                         id: editingPembelianId || ('PEMB-' + Date.now() + Math.random().toString(36).substr(2, 4)),
-                        tglBeli,
-                        namaBarang,
-                        qty,
-                        satuan,
-                        harsat,
-                        totalHarga: qty * harsat
+                        tglBeli, namaBarang, qty, satuan, harsat, totalHarga: qty * harsat
                     });
                 }
             });
 
-            if (!isValid) {
-                alert('Nama barang dan Qty wajib diisi.');
-                return;
-            }
-
-            if (editingPembelianId) {
-                appState.pembelian = appState.pembelian.filter(p => p.id !== editingPembelianId);
-            }
-
+            if (!isValid) { alert('Nama barang dan Qty wajib diisi.'); return; }
+            if (editingPembelianId) appState.pembelian = appState.pembelian.filter(p => p.id !== editingPembelianId);
             appState.pembelian.push(...newItems);
             saveData();
             closePembelianModal();
@@ -1334,26 +1164,21 @@
         function editPembelianItem(id) {
             const item = appState.pembelian.find(p => p.id === id);
             if (!item) return;
-
             editingPembelianId = id;
             document.getElementById('modal-pembelian-title').innerText = 'Edit Item Pembelian';
             document.getElementById('pembelian-tgl').value = item.tglBeli || new Date().toISOString().split('T')[0];
-            
-            const container = document.getElementById('pembelian-items-container');
-            container.innerHTML = '';
+            document.getElementById('pembelian-items-container').innerHTML = '';
             addPembelianItemRow(item);
-
             document.getElementById('modal-pembelian').classList.remove('hidden');
         }
 
         function deletePembelianItem(id) {
-            if (confirm('Apakah Anda yakin ingin menghapus data pembelian ini?')) {
+            if (confirm('Yakin ingin menghapus pembelian ini?')) {
                 appState.pembelian = appState.pembelian.filter(p => p.id !== id);
                 saveData();
             }
         }
 
-        // --- PENJUALAN POPUP & MULTI-ITEM LOGIC ---
         function openPenjualanModal() {
             editingPenjualanId = null;
             document.getElementById('modal-penjualan-title').innerText = 'Input Penjualan Barang';
@@ -1369,112 +1194,66 @@
 
         function getPembelianProductNames() {
             const unique = {};
-            appState.pembelian.forEach(p => {
-                if (p.namaBarang) {
-                    unique[p.namaBarang] = p.satuan || 'Pcs';
-                }
-            });
+            appState.pembelian.forEach(p => { if (p.namaBarang) unique[p.namaBarang] = p.satuan || 'Pcs'; });
             return unique;
         }
 
         function addPenjualanItemRow(data = {}) {
             const container = document.getElementById('penjualan-items-container');
             const rowId = 'row-j-' + Date.now() + Math.random().toString(36).substr(2, 4);
-
             const productsMap = getPembelianProductNames();
             const productOptions = Object.keys(productsMap).map(name => `<option value="${name}" ${data.namaBarang === name ? 'selected' : ''}>${name}</option>`).join('');
 
             const row = document.createElement('div');
             row.className = 'penjualan-row grid grid-cols-12 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 items-center';
             row.id = rowId;
-
             row.innerHTML = `
                 <div class="col-span-12 sm:col-span-4">
                     <select onchange="autoFillSatuanPenjualan(this)" class="j-nama-barang w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500 bg-white">
-                        <option value="">-- Pilih Barang Pembelian --</option>
-                        ${productOptions}
+                        <option value="">-- Pilih Barang --</option>${productOptions}
                     </select>
                 </div>
-                <div class="col-span-4 sm:col-span-2">
-                    <input type="number" placeholder="Qty" value="${data.qty || ''}" class="j-qty w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500">
-                </div>
-                <div class="col-span-4 sm:col-span-2">
-                    <input type="text" placeholder="Satuan" value="${data.satuan || ''}" readonly class="j-satuan w-full border border-slate-200 bg-slate-100 rounded-lg px-2.5 py-1.5 text-xs text-slate-500">
-                </div>
-                <div class="col-span-3 sm:col-span-3">
-                    <input type="number" placeholder="Harga Satuan" value="${data.harsat || ''}" class="j-harsat w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500">
-                </div>
-                <div class="col-span-1 text-center">
-                    <button onclick="document.getElementById('${rowId}').remove()" class="text-red-500 hover:text-red-700 p-1"><i class="fas fa-trash"></i></button>
-                </div>
+                <div class="col-span-4 sm:col-span-2"><input type="number" placeholder="Qty" value="${data.qty || ''}" class="j-qty w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500"></div>
+                <div class="col-span-4 sm:col-span-2"><input type="text" placeholder="Satuan" value="${data.satuan || ''}" readonly class="j-satuan w-full border border-slate-200 bg-slate-100 rounded-lg px-2.5 py-1.5 text-xs text-slate-500"></div>
+                <div class="col-span-3 sm:col-span-3"><input type="number" placeholder="Harga Satuan" value="${data.harsat || ''}" class="j-harsat w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500"></div>
+                <div class="col-span-1 text-center"><button onclick="document.getElementById('${rowId}').remove()" class="text-red-500 hover:text-red-700 p-1"><i class="fas fa-trash"></i></button></div>
             `;
             container.appendChild(row);
-
-            if (data.namaBarang) {
-                const selectEl = row.querySelector('.j-nama-barang');
-                autoFillSatuanPenjualan(selectEl);
-            }
+            if (data.namaBarang) autoFillSatuanPenjualan(row.querySelector('.j-nama-barang'));
         }
 
         function autoFillSatuanPenjualan(selectEl) {
             const selectedName = selectEl.value;
             const parentRow = selectEl.closest('.penjualan-row');
             const satuanInput = parentRow.querySelector('.j-satuan');
-
             const productsMap = getPembelianProductNames();
-            if (selectedName && productsMap[selectedName]) {
-                satuanInput.value = productsMap[selectedName];
-            } else {
-                satuanInput.value = '';
-            }
+            satuanInput.value = (selectedName && productsMap[selectedName]) ? productsMap[selectedName] : '';
         }
 
         function savePenjualan() {
             const tglJual = document.getElementById('penjualan-tgl').value;
-            if (!tglJual) {
-                alert('Silakan pilih tanggal penjualan.');
-                return;
-            }
-
+            if (!tglJual) { alert('Pilih tanggal penjualan.'); return; }
             const rows = document.querySelectorAll('.penjualan-row');
-            if (rows.length === 0) {
-                alert('Tambahkan setidaknya satu item barang.');
-                return;
-            }
+            if (rows.length === 0) { alert('Tambahkan item barang.'); return; }
 
             const newItems = [];
             let isValid = true;
-
             rows.forEach(row => {
                 const namaBarang = row.querySelector('.j-nama-barang').value;
                 const qty = Number(row.querySelector('.j-qty').value);
                 const satuan = row.querySelector('.j-satuan').value || 'Pcs';
                 const harsat = Number(row.querySelector('.j-harsat').value || 0);
-
-                if (!namaBarang || !qty) {
-                    isValid = false;
-                } else {
+                if (!namaBarang || !qty) isValid = false;
+                else {
                     newItems.push({
                         id: editingPenjualanId || ('PENJ-' + Date.now() + Math.random().toString(36).substr(2, 4)),
-                        tglJual,
-                        namaBarang,
-                        qty,
-                        satuan,
-                        harsat,
-                        totalHarga: qty * harsat
+                        tglJual, namaBarang, qty, satuan, harsat, totalHarga: qty * harsat
                     });
                 }
             });
 
-            if (!isValid) {
-                alert('Pilih nama barang dan isi Qty dengan benar.');
-                return;
-            }
-
-            if (editingPenjualanId) {
-                appState.penjualan = appState.penjualan.filter(j => j.id !== editingPenjualanId);
-            }
-
+            if (!isValid) { alert('Pilih nama barang dan Qty.'); return; }
+            if (editingPenjualanId) appState.penjualan = appState.penjualan.filter(j => j.id !== editingPenjualanId);
             appState.penjualan.push(...newItems);
             saveData();
             closePenjualanModal();
@@ -1483,40 +1262,34 @@
         function editPenjualanItem(id) {
             const item = appState.penjualan.find(j => j.id === id);
             if (!item) return;
-
             editingPenjualanId = id;
             document.getElementById('modal-penjualan-title').innerText = 'Edit Item Penjualan';
             document.getElementById('penjualan-tgl').value = item.tglJual || new Date().toISOString().split('T')[0];
-            
-            const container = document.getElementById('penjualan-items-container');
-            container.innerHTML = '';
+            document.getElementById('penjualan-items-container').innerHTML = '';
             addPenjualanItemRow(item);
-
             document.getElementById('modal-penjualan').classList.remove('hidden');
         }
 
         function deletePenjualanItem(id) {
-            if (confirm('Apakah Anda yakin ingin menghapus data penjualan ini?')) {
+            if (confirm('Yakin ingin menghapus penjualan ini?')) {
                 appState.penjualan = appState.penjualan.filter(j => j.id !== id);
                 saveData();
             }
         }
 
-        // --- EXPORT / IMPORT JSON ---
         function exportJSON() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `tokokita_backup_${new Date().toISOString().split('T')[0]}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", `tokokita_backup_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(dl);
+            dl.click();
+            dl.remove();
         }
 
         function importJSON(e) {
             const file = e.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(event) {
                 try {
@@ -1525,78 +1298,49 @@
                         appState.pembelian = parsed.pembelian || [];
                         appState.penjualan = parsed.penjualan || [];
                         saveData();
-                        alert('Data JSON berhasil diimport!');
-                    } else {
-                        alert('Format JSON tidak sesuai.');
-                    }
-                } catch (err) {
-                    alert('Gagal membaca file JSON.');
-                }
+                        alert('JSON berhasil diimport!');
+                    } else { alert('Format JSON tidak sesuai.'); }
+                } catch (err) { alert('Gagal membaca file.'); }
             };
             reader.readAsText(file);
         }
 
-        // --- EXPORT / IMPORT EXCEL (SHEETJS) ---
         function exportExcel() {
             const wb = XLSX.utils.book_new();
-
-            const wsPembelian = XLSX.utils.json_to_sheet(appState.pembelian);
-            XLSX.utils.book_append_sheet(wb, wsPembelian, "Pembelian");
-
-            const wsPenjualan = XLSX.utils.json_to_sheet(appState.penjualan);
-            XLSX.utils.book_append_sheet(wb, wsPenjualan, "Penjualan");
-
-            const stokData = calculateStok();
-            const wsStok = XLSX.utils.json_to_sheet(stokData);
-            XLSX.utils.book_append_sheet(wb, wsStok, "Stok Barang");
-
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(appState.pembelian), "Pembelian");
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(appState.penjualan), "Penjualan");
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(calculateStok()), "Stok Barang");
             XLSX.writeFile(wb, `Laporan_TokoKita_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
         function importExcel(e) {
             const file = e.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(event) {
                 try {
                     const data = new Uint8Array(event.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
-
-                    if (workbook.Sheets["Pembelian"]) {
-                        const parsedPembelian = XLSX.utils.sheet_to_json(workbook.Sheets["Pembelian"]);
-                        appState.pembelian = parsedPembelian;
-                    }
-                    if (workbook.Sheets["Penjualan"]) {
-                        const parsedPenjualan = XLSX.utils.sheet_to_json(workbook.Sheets["Penjualan"]);
-                        appState.penjualan = parsedPenjualan;
-                    }
-
+                    if (workbook.Sheets["Pembelian"]) appState.pembelian = XLSX.utils.sheet_to_json(workbook.Sheets["Pembelian"]);
+                    if (workbook.Sheets["Penjualan"]) appState.penjualan = XLSX.utils.sheet_to_json(workbook.Sheets["Penjualan"]);
                     saveData();
-                    alert('Data Excel berhasil diimport!');
-                } catch (err) {
-                    alert('Gagal mengimpor file Excel.');
-                }
+                    alert('Excel berhasil diimport!');
+                } catch (err) { alert('Gagal mengimpor Excel.'); }
             };
             reader.readAsArrayBuffer(file);
         }
 
-        // --- SIDEBAR UTILITY ACTIONS ---
         function shareApp() {
             if (navigator.share) {
-                navigator.share({
-                    title: 'Aplikasi TokoKita Realtime',
-                    text: 'Kelola penjualan, pembelian, dan stok barang toko bersama-sama secara realtime!',
-                    url: window.location.href
-                }).catch(() => {});
+                navigator.share({ title: 'TokoKita Realtime', text: 'Kelola toko bersama secara realtime!', url: window.location.href }).catch(() => {});
             } else {
                 navigator.clipboard.writeText(window.location.href);
-                alert('Link aplikasi berhasil disalin ke clipboard!');
+                alert('Link aplikasi disalin ke clipboard!');
             }
         }
 
         function downloadAPK() {
-            alert('Aplikasi ini adalah Progressive Web App (PWA). Anda dapat menambahkannya ke layar utama (Add to Home Screen) perangkat mobile Anda.');
+            alert('Aplikasi ini adalah PWA. Tambahkan ke layar utama (Add to Home Screen) perangkat Anda melalui menu browser.');
         }
     </script>
 </body>
