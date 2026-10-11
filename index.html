@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Toko Kolaboratif Real-Time</title>
+    
+    <!-- PWA Manifest & Theme -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -444,7 +450,7 @@
                 </div>
             </div>
 
-            <!-- TOMBOL / PANEL MODAL AWAL (Diletakkan di bawah laba per bulan) -->
+            <!-- TOMBOL / PANEL MODAL AWAL -->
             <div onclick="openModalAwalDetail()" class="bg-gradient-to-r from-indigo-900 to-indigo-700 p-5 rounded-2xl text-white shadow-md hover:shadow-lg transition cursor-pointer flex items-center justify-between group">
                 <div class="flex items-center space-x-4">
                     <div class="p-3.5 bg-white/10 rounded-xl group-hover:bg-white/20 transition">
@@ -626,6 +632,7 @@
         let editingPenjualanId = null;
         let chartBarInstance = null;
         let chartDonutInstance = null;
+        let deferredPrompt = null;
 
         document.addEventListener("DOMContentLoaded", () => {
             initNavigation();
@@ -633,7 +640,17 @@
             initPullToRefresh();
             initFirebaseSync();
             setDefaultDates();
+            initPWAInstallListener();
+            registerServiceWorker();
         });
+
+        function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(() => console.log('Service Worker terdaftar successfully.'))
+                    .catch(err => console.log('Service Worker gagal:', err));
+            }
+        }
 
         function setDefaultDates() {
             const today = new Date().toISOString().split('T')[0];
@@ -708,10 +725,36 @@
             document.getElementById('btn-export-json').addEventListener('click', exportJSON);
             document.getElementById('input-import-json').addEventListener('change', importJSON);
             document.getElementById('btn-share-link').addEventListener('click', shareApp);
-            document.getElementById('btn-download-apk').addEventListener('click', downloadAPK);
+            document.getElementById('btn-download-apk').addEventListener('click', handleAppInstall);
             document.getElementById('btn-header-refresh').addEventListener('click', manualRefresh);
             document.getElementById('btn-export-excel').addEventListener('click', exportExcel);
             document.getElementById('input-import-excel').addEventListener('change', importExcel);
+        }
+
+        function initPWAInstallListener() {
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                const btn = document.getElementById('btn-download-apk');
+                if (btn) {
+                    btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700', 'animate-bounce');
+                    btn.querySelector('span').innerText = 'Instal Aplikasi';
+                }
+            });
+        }
+
+        function handleAppInstall() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('Pengguna menerima instalasi aplikasi');
+                    }
+                    deferredPrompt = null;
+                });
+            } else {
+                alert('Panduan Instalasi:\n\n1. Jika menggunakan Chrome Android, ketuk ikon titik tiga (⋮) di pojok kanan atas browser.\n2. Pilih menu "Tambahkan ke Layar Utama" (Add to Home Screen) atau "Instal Aplikasi".\n3. Aplikasi TokoKita akan terpasang otomatis di HP Anda!');
+            }
         }
 
         function initPullToRefresh() {
@@ -1613,10 +1656,6 @@
                 navigator.clipboard.writeText(window.location.href);
                 alert('Link aplikasi disalin ke clipboard!');
             }
-        }
-
-        function downloadAPK() {
-            alert('Aplikasi ini adalah PWA. Tambahkan ke layar utama (Add to Home Screen) perangkat Anda melalui menu browser.');
         }
     </script>
 </body>
