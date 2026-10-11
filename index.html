@@ -325,6 +325,27 @@
                     <h2 class="text-xl font-bold text-slate-800">Stok Barang & Analisis Laba</h2>
                     <p class="text-xs text-slate-500">Perhitungan inventaris dan keuntungan otomatis</p>
                 </div>
+                <button onclick="openTanamModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition flex items-center space-x-2 shadow-sm">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    <span>Tanam Modal</span>
+                </button>
+            </div>
+
+            <!-- TOMBOL / PANEL MODAL AWAL -->
+            <div onclick="openModalAwalDetail()" class="bg-gradient-to-r from-indigo-900 to-indigo-700 p-5 rounded-2xl text-white shadow-md hover:shadow-lg transition cursor-pointer flex items-center justify-between group">
+                <div class="flex items-center space-x-4">
+                    <div class="p-3.5 bg-white/10 rounded-xl group-hover:bg-white/20 transition">
+                        <i class="fas fa-vault text-2xl text-indigo-200"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-indigo-200 uppercase tracking-wider">Panel Modal Awal & Sisa Modal</p>
+                        <h3 id="panel-sisa-modal-val" class="text-xl font-bold mt-0.5">Rp 0</h3>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2 text-xs text-indigo-200 font-semibold group-hover:text-white transition">
+                    <span>Lihat Rincian Modal</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
             </div>
 
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
@@ -481,6 +502,61 @@
         </div>
     </div>
 
+    <!-- MODAL POPUP TANAM MODAL -->
+    <div id="modal-tanam-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
+            <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-slate-800 text-base">Tambah Tanam Modal</h3>
+                <button onclick="closeTanamModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fas fa-times text-lg"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal</label>
+                    <input type="date" id="tanam-modal-tgl" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Nilai Modal (Rp)</label>
+                    <input type="number" id="tanam-modal-nilai" placeholder="Contoh: 5000000" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end space-x-3">
+                <button onclick="closeTanamModal()" class="px-4 py-2 border border-slate-300 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100">Batal</button>
+                <button onclick="saveTanamModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-medium shadow-sm">Simpan Modal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL RINCIAN PANEL MODAL AWAL -->
+    <div id="modal-panel-awal-detail" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-slate-800 text-lg">Rincian Panel Modal Awal & Sisa Modal</h3>
+                <button onclick="closeModalAwalDetail()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fas fa-times text-lg"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 space-y-4">
+                <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                    <table class="w-full min-w-[700px] text-left text-xs md:text-sm">
+                        <thead class="bg-indigo-50 text-indigo-900 font-semibold uppercase">
+                            <tr>
+                                <th class="p-3 text-center">No</th>
+                                <th class="p-3">Tgl Update</th>
+                                <th class="p-3 text-right">Modal Awal</th>
+                                <th class="p-3 text-right">Total Pembelian</th>
+                                <th class="p-3 text-right">Total Penjualan</th>
+                                <th class="p-3 text-right">Sisa Modal</th>
+                                <th class="p-3 text-center w-20">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-modal-awal-rincian" class="divide-y divide-slate-100 text-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="px-6 py-3 border-t border-slate-200 bg-slate-50 flex justify-end">
+                <button onclick="closeModalAwalDetail()" class="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-xs font-medium">Tutup</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL RINCIAN DASHBOARD -->
     <div id="modal-dashboard-detail" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden">
         <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
@@ -520,7 +596,8 @@
 
         let appState = {
             pembelian: [],
-            penjualan: []
+            penjualan: [],
+            tanamModal: []
         };
 
         let editingPembelianId = null;
@@ -540,6 +617,8 @@
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('pembelian-tgl').value = today;
             document.getElementById('penjualan-tgl').value = today;
+            const tModal = document.getElementById('tanam-modal-tgl');
+            if (tModal) tModal.value = today;
         }
 
         function updateConnectionStatus(status, text) {
@@ -671,14 +750,15 @@
                 
                 db.ref('tokokita_data').on('value', (snapshot) => {
                     const val = snapshot.val();
-                    if (val && (val.pembelian || val.penjualan)) {
+                    if (val && (val.pembelian || val.penjualan || val.tanamModal)) {
                         appState.pembelian = val.pembelian || [];
                         appState.penjualan = val.penjualan || [];
+                        appState.tanamModal = val.tanamModal || [];
                         saveToLocalStorage();
                         renderAll();
                         updateConnectionStatus('connected', 'Realtime Aktif');
                     } else {
-                        if (appState.pembelian.length > 0 || appState.penjualan.length > 0) {
+                        if (appState.pembelian.length > 0 || appState.penjualan.length > 0 || appState.tanamModal.length > 0) {
                             saveData();
                         } else {
                             updateConnectionStatus('connected', 'Cloud Siap');
@@ -699,7 +779,8 @@
                 updateConnectionStatus('syncing', 'Menyimpan...');
                 db.ref('tokokita_data').set({
                     pembelian: appState.pembelian,
-                    penjualan: appState.penjualan
+                    penjualan: appState.penjualan,
+                    tanamModal: appState.tanamModal
                 }).then(() => {
                     updateConnectionStatus('connected', 'Realtime Aktif');
                 }).catch(err => {
@@ -713,13 +794,16 @@
         function saveToLocalStorage() {
             localStorage.setItem('tokokita_pembelian', JSON.stringify(appState.pembelian));
             localStorage.setItem('tokokita_penjualan', JSON.stringify(appState.penjualan));
+            localStorage.setItem('tokokita_tanammodal', JSON.stringify(appState.tanamModal));
         }
 
         function loadFromLocalStorage() {
             const p = localStorage.getItem('tokokita_pembelian');
             const j = localStorage.getItem('tokokita_penjualan');
+            const m = localStorage.getItem('tokokita_tanammodal');
             appState.pembelian = p ? JSON.parse(p) : [];
             appState.penjualan = j ? JSON.parse(j) : [];
+            appState.tanamModal = m ? JSON.parse(m) : [];
             renderAll();
         }
 
@@ -733,6 +817,7 @@
                     if (val) {
                         appState.pembelian = val.pembelian || [];
                         appState.penjualan = val.penjualan || [];
+                        appState.tanamModal = val.tanamModal || [];
                         saveToLocalStorage();
                     }
                     renderAll();
@@ -821,6 +906,16 @@
             renderTablesPenjualan();
             renderTablesStokAndLaba();
             renderCharts();
+            renderPanelModalAwalVal();
+        }
+
+        function renderPanelModalAwalVal() {
+            const totalBeliAll = appState.pembelian.reduce((acc, curr) => acc + Number(curr.totalHarga || (curr.qty * curr.harsat) || 0), 0);
+            const totalJualAll = appState.penjualan.reduce((acc, curr) => acc + Number(curr.totalHarga || (curr.qty * curr.harsat) || 0), 0);
+            const totalModalAwal = appState.tanamModal.reduce((acc, curr) => acc + Number(curr.nilai || 0), 0);
+            const sisaModal = totalModalAwal + totalJualAll - totalBeliAll;
+            const el = document.getElementById('panel-sisa-modal-val');
+            if (el) el.innerText = formatRp(sisaModal);
         }
 
         function renderDashboardCards() {
@@ -961,6 +1056,76 @@
             } else if (type === 'bulanan') {
                 document.getElementById('section-laba-bulanan').classList.toggle('hidden');
             }
+        }
+
+        // --- MODAL & TANAM MODAL LOGIC ---
+        function openTanamModal() {
+            setDefaultDates();
+            document.getElementById('tanam-modal-nilai').value = '';
+            document.getElementById('modal-tanam-modal').classList.remove('hidden');
+        }
+
+        function closeTanamModal() {
+            document.getElementById('modal-tanam-modal').classList.add('hidden');
+        }
+
+        function saveTanamModal() {
+            const tgl = document.getElementById('tanam-modal-tgl').value;
+            const nilai = Number(document.getElementById('tanam-modal-nilai').value || 0);
+            if (!tgl || !nilai) {
+                alert('Isi tanggal dan nilai modal dengan benar.');
+                return;
+            }
+            if (!appState.tanamModal) appState.tanamModal = [];
+            appState.tanamModal.push({
+                id: 'MODAL-' + Date.now() + Math.random().toString(36).substr(2, 4),
+                tgl,
+                nilai
+            });
+            saveData();
+            closeTanamModal();
+        }
+
+        function deleteTanamModalItem(id) {
+            if (confirm('Yakin ingin menghapus data tanam modal ini?')) {
+                appState.tanamModal = appState.tanamModal.filter(m => m.id !== id);
+                saveData();
+                openModalAwalDetail(); // refresh modal rincian
+            }
+        }
+
+        function openModalAwalDetail() {
+            const tbody = document.getElementById('tbody-modal-awal-rincian');
+            tbody.innerHTML = '';
+            const totalBeliAll = appState.pembelian.reduce((acc, curr) => acc + Number(curr.totalHarga || (curr.qty * curr.harsat) || 0), 0);
+            const totalJualAll = appState.penjualan.reduce((acc, curr) => acc + Number(curr.totalHarga || (curr.qty * curr.harsat) || 0), 0);
+
+            if (!appState.tanamModal || appState.tanamModal.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400">Belum ada data tanam modal. Klik tombol "Tanam Modal" di atas.</td></tr>`;
+            } else {
+                appState.tanamModal.sort((a, b) => b.tgl.localeCompare(a.tgl)).forEach((item, idx) => {
+                    const modalAwal = Number(item.nilai || 0);
+                    const sisaModal = modalAwal + totalJualAll - totalBeliAll;
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="p-3 text-center">${idx + 1}</td>
+                            <td class="p-3 font-medium">${item.tgl}</td>
+                            <td class="p-3 text-right font-semibold text-indigo-600">${formatRp(modalAwal)}</td>
+                            <td class="p-3 text-right text-blue-600">${formatRp(totalBeliAll)}</td>
+                            <td class="p-3 text-right text-emerald-600">${formatRp(totalJualAll)}</td>
+                            <td class="p-3 text-right font-bold text-slate-900">${formatRp(sisaModal)}</td>
+                            <td class="p-3 text-center">
+                                <button onclick="deleteTanamModalItem('${item.id}')" class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition" title="Hapus"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            document.getElementById('modal-panel-awal-detail').classList.remove('hidden');
+        }
+
+        function closeModalAwalDetail() {
+            document.getElementById('modal-panel-awal-detail').classList.add('hidden');
         }
 
         function renderCharts() {
@@ -1288,9 +1453,10 @@
             reader.onload = function(event) {
                 try {
                     const parsed = JSON.parse(event.target.result);
-                    if (parsed.pembelian || parsed.penjualan) {
+                    if (parsed.pembelian || parsed.penjualan || parsed.tanamModal) {
                         appState.pembelian = parsed.pembelian || [];
                         appState.penjualan = parsed.penjualan || [];
+                        appState.tanamModal = parsed.tanamModal || [];
                         saveData();
                         alert('JSON berhasil diimport!');
                     } else { alert('Format JSON tidak sesuai.'); }
@@ -1299,11 +1465,9 @@
             reader.readAsText(file);
         }
 
-        // --- EXPORT EXCEL YANG DISESUAIKAN DAN DITAMBAH SHEET LABA ---
         function exportExcel() {
             const wb = XLSX.utils.book_new();
 
-            // 1. Sheet Pembelian (Urutan kolom rapi: No, Tgl Beli, Nama Barang, Qty, Satuan, Harga Satuan, Total Harga)
             const dataPembelian = appState.pembelian.map((p, idx) => ({
                 "No": idx + 1,
                 "Tgl Beli": p.tglBeli || '-',
@@ -1313,10 +1477,8 @@
                 "Harga Satuan": Number(p.harsat || 0),
                 "Total Harga": Number(p.totalHarga || (p.qty * p.harsat) || 0)
             }));
-            const wsPembelian = XLSX.utils.json_to_sheet(dataPembelian);
-            XLSX.utils.book_append_sheet(wb, wsPembelian, "Pembelian");
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataPembelian), "Pembelian");
 
-            // 2. Sheet Penjualan (Urutan kolom rapi: No, Tgl Jual, Nama Barang, Qty, Satuan, Harga Satuan, Total Harga)
             const dataPenjualan = appState.penjualan.map((j, idx) => ({
                 "No": idx + 1,
                 "Tgl Jual": j.tglJual || '-',
@@ -1326,10 +1488,8 @@
                 "Harga Satuan": Number(j.harsat || 0),
                 "Total Harga": Number(j.totalHarga || (j.qty * j.harsat) || 0)
             }));
-            const wsPenjualan = XLSX.utils.json_to_sheet(dataPenjualan);
-            XLSX.utils.book_append_sheet(wb, wsPenjualan, "Penjualan");
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataPenjualan), "Penjualan");
 
-            // 3. Sheet Stok Barang
             const dataStok = calculateStok().map((s, idx) => ({
                 "No": idx + 1,
                 "Tgl Update": s.lastUpdate || '-',
@@ -1340,10 +1500,8 @@
                 "Stok": Number(s.stok || 0),
                 "Status": s.status || '-'
             }));
-            const wsStok = XLSX.utils.json_to_sheet(dataStok);
-            XLSX.utils.book_append_sheet(wb, wsStok, "Stok Barang");
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataStok), "Stok Barang");
 
-            // 4. Sheet Laba Per Hari
             const dataLabaHarian = calculateLabaHarian().map((lh, idx) => ({
                 "No": idx + 1,
                 "Tanggal": lh.tgl || '-',
@@ -1351,10 +1509,8 @@
                 "Total Harga Jual": Number(lh.totalJual || 0),
                 "Total Laba": Number(lh.laba || 0)
             }));
-            const wsLabaHarian = XLSX.utils.json_to_sheet(dataLabaHarian);
-            XLSX.utils.book_append_sheet(wb, wsLabaHarian, "Laba Per Hari");
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataLabaHarian), "Laba Per Hari");
 
-            // 5. Sheet Laba Per Bulan
             const dataLabaBulanan = calculateLabaBulanan().map((lb, idx) => ({
                 "No": idx + 1,
                 "Bulan / Tahun": lb.bulan || '-',
@@ -1362,10 +1518,8 @@
                 "Total Jual Bulanan": Number(lb.totalJual || 0),
                 "Total Laba": Number(lb.laba || 0)
             }));
-            const wsLabaBulanan = XLSX.utils.json_to_sheet(dataLabaBulanan);
-            XLSX.utils.book_append_sheet(wb, wsLabaBulanan, "Laba Per Bulan");
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataLabaBulanan), "Laba Per Bulan");
 
-            // Simpan file Excel
             XLSX.writeFile(wb, `Laporan_TokoKita_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
