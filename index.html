@@ -238,13 +238,35 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-bold text-slate-800 text-base">Komposisi Stok Barang</h3>
-                        <span class="text-xs text-slate-400">Qty Tersedia</span>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-slate-800 text-base">Komposisi Stok Barang</h3>
+                            <span class="text-xs text-slate-400">Qty Tersedia</span>
+                        </div>
+                        <div class="relative h-60 w-full flex items-center justify-center">
+                            <canvas id="chartDonutStok"></canvas>
+                        </div>
                     </div>
-                    <div class="relative h-72 w-full flex items-center justify-center">
-                        <canvas id="chartDonutStok"></canvas>
+
+                    <!-- TABEL RINGKASAN STOK DI BAWAH DONUT CHART -->
+                    <div class="mt-6 pt-4 border-t border-slate-100">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Ringkasan Sisa Stok</span>
+                            <span class="text-xxs text-slate-400">Status Cepat</span>
+                        </div>
+                        <div class="overflow-x-auto max-h-48 overflow-y-auto border border-slate-100 rounded-xl">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-50 text-slate-500 font-semibold sticky top-0">
+                                    <tr>
+                                        <th class="py-2 px-3">Nama Barang</th>
+                                        <th class="py-2 px-3 text-center">Sisa Stok</th>
+                                        <th class="py-2 px-3 text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-dash-stok-summary" class="divide-y divide-slate-100 text-slate-700"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -895,7 +917,7 @@
                 if (!j.tglJual) return;
                 const month = j.tglJual.substring(0, 7);
                 if (!map[month]) map[month] = { bulan: month, totalBeli: 0, totalJual: 0 };
-                map[month].totalJual += Number(j.totalHarga || (j.qty * j.harsat) || 0);
+                map[month].totalBeli += Number(j.totalHarga || (j.qty * j.harsat) || 0);
             });
             return Object.values(map).sort((a, b) => b.bulan.localeCompare(a.bulan)).map(item => ({ ...item, laba: item.totalJual - item.totalBeli }));
         }
@@ -907,13 +929,39 @@
             renderTablesStokAndLaba();
             renderCharts();
             renderPanelModalAwalVal();
+            renderDashStokSummary();
+        }
+
+        function renderDashStokSummary() {
+            const tbody = document.getElementById('tbody-dash-stok-summary');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            const stokData = calculateStok();
+            if (stokData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="text-center py-3 text-slate-400">Belum ada stok barang</td></tr>`;
+                return;
+            }
+            stokData.forEach(item => {
+                let badge = `<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-xxs font-semibold">Tersedia</span>`;
+                if (item.stok <= 0) {
+                    badge = `<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xxs font-semibold">Habis</span>`;
+                } else if (item.stok <= 5) {
+                    badge = `<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-xxs font-semibold">Menipis</span>`;
+                }
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-2 px-3 font-semibold text-slate-800">${item.namaBarang}</td>
+                        <td class="py-2 px-3 text-center font-bold">${item.stok} ${item.satuan}</td>
+                        <td class="py-2 px-3 text-center">${badge}</td>
+                    </tr>
+                `;
+            });
         }
 
         function renderPanelModalAwalVal() {
             const totalBeliAll = appState.pembelian.reduce((acc, curr) => acc + Number(curr.totalHarga || (curr.qty * curr.harsat) || 0), 0);
             const totalJualAll = appState.penjualan.reduce((acc, curr) => acc + Number(curr.totalHarga || (curr.qty * curr.harsat) || 0), 0);
             const totalModalAwal = appState.tanamModal.reduce((acc, curr) => acc + Number(curr.nilai || 0), 0);
-            // Sesuai permintaan baru: modal awal - total pembelian + total penjualan
             const sisaModal = totalModalAwal - totalBeliAll + totalJualAll;
             const el = document.getElementById('panel-sisa-modal-val');
             if (el) el.innerText = formatRp(sisaModal);
@@ -1091,7 +1139,7 @@
             if (confirm('Yakin ingin menghapus data tanam modal ini?')) {
                 appState.tanamModal = appState.tanamModal.filter(m => m.id !== id);
                 saveData();
-                openModalAwalDetail(); // refresh modal rincian
+                openModalAwalDetail();
             }
         }
 
@@ -1106,7 +1154,6 @@
             } else {
                 appState.tanamModal.sort((a, b) => b.tgl.localeCompare(a.tgl)).forEach((item, idx) => {
                     const modalAwal = Number(item.nilai || 0);
-                    // Logika baru: (Modal Awal - Total Pembelian + Total Penjualan)
                     const sisaModal = modalAwal - totalBeliAll + totalJualAll;
                     tbody.innerHTML += `
                         <tr class="hover:bg-slate-50 transition">
@@ -1522,7 +1569,6 @@
             }));
             XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataLabaBulanan), "Laba Per Bulan");
 
-            // Tambahan Sheet Modal Awal ke Export Excel
             const totalBeliAll = appState.pembelian.reduce((acc, curr) => acc + Number(curr.totalHarga || (curr.qty * curr.harsat) || 0), 0);
             const totalJualAll = appState.penjualan.reduce((acc, curr) => acc + Number(curr.totalHarga || (curr.qty * curr.harsat) || 0), 0);
             const dataModalAwal = (appState.tanamModal || []).map((m, idx) => {
