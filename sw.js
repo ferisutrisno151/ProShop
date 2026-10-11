@@ -1,26 +1,41 @@
-const CACHE_NAME = 'tokokita-v1';
-const urlsToCache = [
+const CACHE_NAME = 'tokokita-proshop-v1';
+const ASSETS_TO_CACHE = [
+  './',
   './index.html',
   './manifest.json',
-  'https://cdn.tailwindcss.com',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-  'https://cdn.jsdelivr.net/npm/chart.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
-  'https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js',
-  'https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js'
+  './icon-512.png'
 ];
 
-self.addEventListener('install', event => {
+// Install Event - Menyimpan aset ke cache
+self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(urlsToCache);
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS_TO_CACHE);
     })
   );
+  self.skipWaiting();
 });
 
-self.addEventListener('fetch', event => {
+// Activate Event - Membersihkan cache lama jika ada pembaruan
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            return caches.delete(cache);
+          }
+        })
+      );
+    })
+  );
+  self.clients.claim();
+});
+
+// Fetch Event - Mengambil aset dari cache jika offline
+self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then(response => {
+    caches.match(event.request).then((response) => {
       return response || fetch(event.request);
     })
   );
