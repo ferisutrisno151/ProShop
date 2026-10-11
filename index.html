@@ -1704,7 +1704,7 @@
     document.body.appendChild(scriptTag);
   }
 
-  function verifyProShopAuth() {
+    function verifyProShopAuth() {
     const session = JSON.parse(localStorage.getItem('proshop_auth_session'));
     const now = new Date().getTime();
     const modal = document.getElementById('auth-modal');
@@ -1714,11 +1714,15 @@
       modal.style.display = 'none';
     } else {
       modal.style.display = 'flex';
-      if (session && session.requestId) {
-        startPollingStatus(session.requestId);
+      localStorage.removeItem('proshop_auth_session'); // Hapus sesi nyangkut
+      const btn = document.getElementById('auth-submit-btn');
+      if (btn) {
+        btn.disabled = false;
+        btn.innerText = 'Kirim Permintaan Akses';
       }
     }
   }
+
 
   function submitAuthRequest() {
     const nameInput = document.getElementById('auth-username').value.trim();
