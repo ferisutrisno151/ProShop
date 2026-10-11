@@ -331,23 +331,6 @@
                 </button>
             </div>
 
-            <!-- TOMBOL / PANEL MODAL AWAL -->
-            <div onclick="openModalAwalDetail()" class="bg-gradient-to-r from-indigo-900 to-indigo-700 p-5 rounded-2xl text-white shadow-md hover:shadow-lg transition cursor-pointer flex items-center justify-between group">
-                <div class="flex items-center space-x-4">
-                    <div class="p-3.5 bg-white/10 rounded-xl group-hover:bg-white/20 transition">
-                        <i class="fas fa-vault text-2xl text-indigo-200"></i>
-                    </div>
-                    <div>
-                        <p class="text-xs font-medium text-indigo-200 uppercase tracking-wider">Panel Modal Awal & Sisa Modal</p>
-                        <h3 id="panel-sisa-modal-val" class="text-xl font-bold mt-0.5">Rp 0</h3>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-2 text-xs text-indigo-200 font-semibold group-hover:text-white transition">
-                    <span>Lihat Rincian Modal</span>
-                    <i class="fas fa-arrow-right"></i>
-                </div>
-            </div>
-
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
                 <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                     <h3 class="font-bold text-slate-800 text-sm">Status Inventaris Barang</h3>
@@ -436,6 +419,23 @@
                         </thead>
                         <tbody id="tbody-laba-bulanan" class="divide-y divide-slate-100 text-slate-700"></tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- TOMBOL / PANEL MODAL AWAL (Diletakkan di bawah laba per bulan) -->
+            <div onclick="openModalAwalDetail()" class="bg-gradient-to-r from-indigo-900 to-indigo-700 p-5 rounded-2xl text-white shadow-md hover:shadow-lg transition cursor-pointer flex items-center justify-between group">
+                <div class="flex items-center space-x-4">
+                    <div class="p-3.5 bg-white/10 rounded-xl group-hover:bg-white/20 transition">
+                        <i class="fas fa-vault text-2xl text-indigo-200"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-indigo-200 uppercase tracking-wider">Panel Modal Awal & Sisa Modal</p>
+                        <h3 id="panel-sisa-modal-val" class="text-xl font-bold mt-0.5">Rp 0</h3>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2 text-xs text-indigo-200 font-semibold group-hover:text-white transition">
+                    <span>Lihat Rincian Modal</span>
+                    <i class="fas fa-arrow-right"></i>
                 </div>
             </div>
         </section>
@@ -913,7 +913,8 @@
             const totalBeliAll = appState.pembelian.reduce((acc, curr) => acc + Number(curr.totalHarga || (curr.qty * curr.harsat) || 0), 0);
             const totalJualAll = appState.penjualan.reduce((acc, curr) => acc + Number(curr.totalHarga || (curr.qty * curr.harsat) || 0), 0);
             const totalModalAwal = appState.tanamModal.reduce((acc, curr) => acc + Number(curr.nilai || 0), 0);
-            const sisaModal = totalModalAwal + totalJualAll - totalBeliAll;
+            // Sesuai permintaan baru: modal awal - total pembelian + total penjualan
+            const sisaModal = totalModalAwal - totalBeliAll + totalJualAll;
             const el = document.getElementById('panel-sisa-modal-val');
             if (el) el.innerText = formatRp(sisaModal);
         }
@@ -1105,7 +1106,8 @@
             } else {
                 appState.tanamModal.sort((a, b) => b.tgl.localeCompare(a.tgl)).forEach((item, idx) => {
                     const modalAwal = Number(item.nilai || 0);
-                    const sisaModal = modalAwal + totalJualAll - totalBeliAll;
+                    // Logika baru: (Modal Awal - Total Pembelian + Total Penjualan)
+                    const sisaModal = modalAwal - totalBeliAll + totalJualAll;
                     tbody.innerHTML += `
                         <tr class="hover:bg-slate-50 transition">
                             <td class="p-3 text-center">${idx + 1}</td>
@@ -1519,6 +1521,24 @@
                 "Total Laba": Number(lb.laba || 0)
             }));
             XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataLabaBulanan), "Laba Per Bulan");
+
+            // Tambahan Sheet Modal Awal ke Export Excel
+            const totalBeliAll = appState.pembelian.reduce((acc, curr) => acc + Number(curr.totalHarga || (curr.qty * curr.harsat) || 0), 0);
+            const totalJualAll = appState.penjualan.reduce((acc, curr) => acc + Number(curr.totalHarga || (curr.qty * curr.harsat) || 0), 0);
+            const dataModalAwal = (appState.tanamModal || []).map((m, idx) => {
+                const modalAwal = Number(m.nilai || 0);
+                const sisaModal = modalAwal - totalBeliAll + totalJualAll;
+                return {
+                    "No": idx + 1,
+                    "Tgl Update": m.tgl || '-',
+                    "Modal Awal": modalAwal,
+                    "Total Pembelian": totalBeliAll,
+                    "Total Penjualan": totalJualAll,
+                    "Sisa Modal": sisaModal
+                };
+            });
+            const wsModalAwal = XLSX.utils.json_to_sheet(dataModalAwal.length ? dataModalAwal : [{"No": 1, "Tgl Update": "-", "Modal Awal": 0, "Total Pembelian": 0, "Total Penjualan": 0, "Sisa Modal": 0}]);
+            XLSX.utils.book_append_sheet(wb, wsModalAwal, "Modal Awal");
 
             XLSX.writeFile(wb, `Laporan_TokoKita_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
