@@ -1658,25 +1658,25 @@
             }
         }
     </script>
-    <!-- MODAL OTORITAS AKSES 8 JAM -->
-<div id="auth-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.92); z-index:99999; align-items:center; justify-content:center;">
-  <div style="background:#ffffff; padding:28px; border-radius:16px; width:90%; max-width:380px; box-shadow:0 10px 25px rgba(0,0,0,0.3); text-align:center;">
-    <div style="width:50px; height:50px; background:#e0e7ff; color:#4f46e5; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px auto; font-size:22px;">
+<!-- ========================================== -->
+<!-- MODAL OTORITAS AKSES (POSISI PALING ATAS)  -->
+<!-- ========================================== -->
+<div id="auth-modal" style="display: flex !important; position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; background: rgba(15, 23, 42, 0.98) !important; z-index: 2147483647 !important; align-items: center !important; justify-content: center !important;">
+  <div style="background: #ffffff !important; padding: 28px !important; border-radius: 16px !important; width: 90% !important; max-width: 380px !important; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important; text-align: center !important;">
+    <div style="width: 50px !important; height: 50px !important; background: #e0e7ff !important; color: #4f46e5 !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; margin: 0 auto 16px auto !important; font-size: 22px !important;">
       <i class="fa-solid fa-shield-halved"></i>
     </div>
-    <h2 style="color:#1e293b; font-size:18px; font-weight:bold; margin-bottom:6px;">Otoritas Masuk ProShop</h2>
-    <p style="color:#64748b; font-size:13px; margin-bottom:20px; line-height:1.4;">Masukkan nama Anda untuk mengirim permintaan izin akses kepada Administrator.</p>
+    <h2 style="color: #1e293b !important; font-size: 18px !important; font-weight: bold !important; margin-bottom: 6px !important;">Otoritas Masuk ProShop</h2>
+    <p style="color: #64748b !important; font-size: 13px !important; margin-bottom: 20px !important; line-height: 1.4 !important;">Masukkan nama Anda untuk mengirim permintaan izin akses kepada Administrator.</p>
     
-    <input type="text" id="auth-username" placeholder="Ketik nama lengkap Anda..." style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; margin-bottom:14px; box-sizing:border-box; outline:none;">
+    <input type="text" id="auth-username" placeholder="Ketik nama lengkap Anda..." style="width: 100% !important; padding: 12px !important; border: 1px solid #cbd5e1 !important; border-radius: 8px !important; font-size: 14px !important; margin-bottom: 14px !important; box-sizing: border-box !important; outline: none !important;">
     
-    <button id="auth-submit-btn" onclick="submitAuthRequest()" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:14px; font-weight:bold; cursor:pointer; transition:background 0.2s;">Kirim Permintaan Akses</button>
+    <button id="auth-submit-btn" onclick="submitAuthRequest()" style="width: 100% !important; padding: 12px !important; background: #4f46e5 !important; color: white !important; border: none !important; border-radius: 8px !important; font-size: 14px !important; font-weight: bold !important; cursor: pointer !important;">Kirim Permintaan Akses</button>
     
-    <p id="auth-status" style="color:#0284c7; font-size:13px; margin-top:14px; display:none; font-weight:500;"></p>
+    <p id="auth-status" style="color: #0284c7 !important; font-size: 13px !important; margin-top: 14px !important; display: none !important; font-weight: 500 !important;"></p>
   </div>
 </div>
-
 <script>
-  <script>
   const GAS_URL = "https://script.google.com/macros/s/AKfycbwfVxwLIuqUotQ9b_2jitaU07PppMAYPRyluj_CwiPXUS4WuMAG6Em3Dbuv_HHiHvn9AQ/exec"; 
   const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 Jam
   let checkInterval = null;
@@ -1685,12 +1685,13 @@
     const session = JSON.parse(localStorage.getItem('proshop_auth_session'));
     const now = new Date().getTime();
 
+    const modal = document.getElementById('auth-modal');
+    if (!modal) return;
+
     if (session && session.approved && (now - session.timestamp < SESSION_DURATION)) {
-      // Sesi masih aktif
-      document.getElementById('auth-modal').style.display = 'none';
+      modal.style.setProperty('display', 'none', 'important');
     } else {
-      // Belum ada izin / sesi habis -> Tampilkan modal paksa
-      document.getElementById('auth-modal').style.display = 'flex';
+      modal.style.setProperty('display', 'flex', 'important');
       if (session && session.requestId) {
         startPollingStatus(session.requestId);
       }
@@ -1764,7 +1765,7 @@
           localStorage.setItem('proshop_auth_session', JSON.stringify(session));
 
           setTimeout(() => {
-            document.getElementById('auth-modal').style.display = 'none';
+            document.getElementById('auth-modal').style.setProperty('display', 'none', 'important');
             location.reload();
           }, 1000);
 
@@ -1784,7 +1785,7 @@
     }, 4000);
   }
 
-  // Eksekusi langsung tanpa menunggu DOMContentLoaded karena script ada di bagian bawah
+  // Jalankan verifikasi langsung saat script dibaca
   verifyProShopAuth();
 </script>
 </body>
