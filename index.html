@@ -1658,5 +1658,135 @@
             }
         }
     </script>
+    <!-- MODAL OTORITAS AKSES 8 JAM -->
+<div id="auth-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.92); z-index:99999; align-items:center; justify-content:center;">
+  <div style="background:#ffffff; padding:28px; border-radius:16px; width:90%; max-width:380px; box-shadow:0 10px 25px rgba(0,0,0,0.3); text-align:center;">
+    <div style="width:50px; height:50px; background:#e0e7ff; color:#4f46e5; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px auto; font-size:22px;">
+      <i class="fa-solid fa-shield-halved"></i>
+    </div>
+    <h2 style="color:#1e293b; font-size:18px; font-weight:bold; margin-bottom:6px;">Otoritas Masuk ProShop</h2>
+    <p style="color:#64748b; font-size:13px; margin-bottom:20px; line-height:1.4;">Masukkan nama Anda untuk mengirim permintaan izin akses kepada Administrator.</p>
+    
+    <input type="text" id="auth-username" placeholder="Ketik nama lengkap Anda..." style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; margin-bottom:14px; box-sizing:border-box; outline:none;">
+    
+    <button id="auth-submit-btn" onclick="submitAuthRequest()" style="width:100%; padding:12px; background:#4f46e5; color:white; border:none; border-radius:8px; font-size:14px; font-weight:bold; cursor:pointer; transition:background 0.2s;">Kirim Permintaan Akses</button>
+    
+    <p id="auth-status" style="color:#0284c7; font-size:13px; margin-top:14px; display:none; font-weight:500;"></p>
+  </div>
+</div>
+
+<script>
+  // URL Google Apps Script Web App Anda yang aktif
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbwfVxwLIuqUotQ9b_2jitaU07PppMAYPRyluj_CwiPXUS4WuMAG6Em3Dbuv_HHiHvn9AQ/exec"; 
+  const SESSION_DURATION = 8 * 60 * 60 * 1000; // Sesi aktif selama 8 jam
+  let checkInterval = null;
+
+  function verifyProShopAuth() {
+    const session = JSON.parse(localStorage.getItem('proshop_auth_session'));
+    const now = new Date().getTime();
+
+    if (session && session.approved && (now - session.timestamp < SESSION_DURATION)) {
+      // Sesi valid di bawah 8 jam -> Buka aplikasi normal
+      document.getElementById('auth-modal').style.display = 'none';
+    } else {
+      // Sesi habis atau belum diizinkan -> Tampilkan pop-up login
+      document.getElementById('auth-modal').style.display = 'flex';
+      if (session && session.requestId) {
+        startPollingStatus(session.requestId);
+      }
+    }
+  }
+
+  function submitAuthRequest() {
+    const nameInput = document.getElementById('auth-username').value.trim();
+    if (!nameInput) {
+      alert('Silakan masukkan nama Anda terlebih dahulu!');
+      return;
+    }
+
+    const btn = document.getElementById('auth-submit-btn');
+    const statusText = document.getElementById('auth-status');
+    btn.disabled = true;
+    btn.innerText = 'Mengirim Permintaan...';
+
+    fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'request', name: nameInput })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if(data.status === 'success') {
+        localStorage.setItem('proshop_auth_session', JSON.stringify({
+          requestId: data.requestId,
+          name: nameInput,
+          approved: false,
+          timestamp: new Date().getTime()
+        }));
+
+        statusText.style.display = 'block';
+        statusText.innerText = 'Permintaan terkirim. Menunggu persetujuan Admin via Email...';
+        btn.innerText = 'Menunggu Konfirmasi...';
+        
+        startPollingStatus(data.requestId);
+      } else {
+        alert('Gagal mengirim permintaan.');
+        btn.disabled = false;
+        btn.innerText = 'Kirim Permintaan Akses';
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Terjadi kesalahan koneksi.');
+      btn.disabled = false;
+      btn.innerText = 'Kirim Permintaan Akses';
+    });
+  }
+
+  function startPollingStatus(requestId) {
+    if (checkInterval) clearInterval(checkInterval);
+    
+    checkInterval = setInterval(() => {
+      fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'check', requestId: requestId })
+      })
+      .then(res => res.json())
+      .then(data => {
+        const statusText = document.getElementById('auth-status');
+        if (data.status === 'APPROVED') {
+          clearInterval(checkInterval);
+          statusText.style.color = '#16a34a';
+          statusText.innerText = 'Akses Diterima! Memuat aplikasi...';
+          
+          const session = JSON.parse(localStorage.getItem('proshop_auth_session')) || {};
+          session.approved = true;
+          session.timestamp = new Date().getTime(); // Reset hitung mundur 8 jam
+          localStorage.setItem('proshop_auth_session', JSON.stringify(session));
+
+          setTimeout(() => {
+            document.getElementById('auth-modal').style.display = 'none';
+            location.reload();
+          }, 1000);
+
+        } else if (data.status === 'REJECTED') {
+          clearInterval(checkInterval);
+          statusText.style.color = '#dc2626';
+          statusText.innerText = 'Akses Ditolak oleh Administrator.';
+          localStorage.removeItem('proshop_auth_session');
+          
+          setTimeout(() => {
+            document.getElementById('auth-submit-btn').disabled = false;
+            document.getElementById('auth-submit-btn').innerText = 'Kirim Permintaan Akses';
+          }, 2000);
+        }
+      })
+      .catch(err => console.log(err));
+    }, 4000); // Cek status otomatis setiap 4 detik
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    verifyProShopAuth();
+  });
+</script>
 </body>
 </html>
