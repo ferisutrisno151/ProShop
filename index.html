@@ -497,7 +497,6 @@
 
     <!-- JAVASCRIPT LOGIC & FIREBASE CONFIGURATION -->
     <script>
-        // --- CONFIG FIREBASE DENGAN URL SINGAPURA REGION ---
         const firebaseConfig = {
             apiKey: "AIzaSyAO7PhqkktQBH310DDFM8WD5SZRzVbX8wU",
             authDomain: "proshop-a961d.firebaseapp.com",
@@ -679,7 +678,6 @@
                         renderAll();
                         updateConnectionStatus('connected', 'Realtime Aktif');
                     } else {
-                        // Jika Cloud kosong tapi local ada isinya, unggah data local ke cloud
                         if (appState.pembelian.length > 0 || appState.penjualan.length > 0) {
                             saveData();
                         } else {
@@ -1301,11 +1299,73 @@
             reader.readAsText(file);
         }
 
+        // --- EXPORT EXCEL YANG DISESUAIKAN DAN DITAMBAH SHEET LABA ---
         function exportExcel() {
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(appState.pembelian), "Pembelian");
-            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(appState.penjualan), "Penjualan");
-            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(calculateStok()), "Stok Barang");
+
+            // 1. Sheet Pembelian (Urutan kolom rapi: No, Tgl Beli, Nama Barang, Qty, Satuan, Harga Satuan, Total Harga)
+            const dataPembelian = appState.pembelian.map((p, idx) => ({
+                "No": idx + 1,
+                "Tgl Beli": p.tglBeli || '-',
+                "Nama Barang": p.namaBarang || '',
+                "Qty": Number(p.qty || 0),
+                "Satuan": p.satuan || 'Pcs',
+                "Harga Satuan": Number(p.harsat || 0),
+                "Total Harga": Number(p.totalHarga || (p.qty * p.harsat) || 0)
+            }));
+            const wsPembelian = XLSX.utils.json_to_sheet(dataPembelian);
+            XLSX.utils.book_append_sheet(wb, wsPembelian, "Pembelian");
+
+            // 2. Sheet Penjualan (Urutan kolom rapi: No, Tgl Jual, Nama Barang, Qty, Satuan, Harga Satuan, Total Harga)
+            const dataPenjualan = appState.penjualan.map((j, idx) => ({
+                "No": idx + 1,
+                "Tgl Jual": j.tglJual || '-',
+                "Nama Barang": j.namaBarang || '',
+                "Qty": Number(j.qty || 0),
+                "Satuan": j.satuan || 'Pcs',
+                "Harga Satuan": Number(j.harsat || 0),
+                "Total Harga": Number(j.totalHarga || (j.qty * j.harsat) || 0)
+            }));
+            const wsPenjualan = XLSX.utils.json_to_sheet(dataPenjualan);
+            XLSX.utils.book_append_sheet(wb, wsPenjualan, "Penjualan");
+
+            // 3. Sheet Stok Barang
+            const dataStok = calculateStok().map((s, idx) => ({
+                "No": idx + 1,
+                "Tgl Update": s.lastUpdate || '-',
+                "Nama Barang": s.namaBarang || '',
+                "Satuan": s.satuan || 'Pcs',
+                "Total Beli": Number(s.totalBeli || 0),
+                "Total Jual": Number(s.totalJual || 0),
+                "Stok": Number(s.stok || 0),
+                "Status": s.status || '-'
+            }));
+            const wsStok = XLSX.utils.json_to_sheet(dataStok);
+            XLSX.utils.book_append_sheet(wb, wsStok, "Stok Barang");
+
+            // 4. Sheet Laba Per Hari
+            const dataLabaHarian = calculateLabaHarian().map((lh, idx) => ({
+                "No": idx + 1,
+                "Tanggal": lh.tgl || '-',
+                "Total Harga Beli": Number(lh.totalBeli || 0),
+                "Total Harga Jual": Number(lh.totalJual || 0),
+                "Total Laba": Number(lh.laba || 0)
+            }));
+            const wsLabaHarian = XLSX.utils.json_to_sheet(dataLabaHarian);
+            XLSX.utils.book_append_sheet(wb, wsLabaHarian, "Laba Per Hari");
+
+            // 5. Sheet Laba Per Bulan
+            const dataLabaBulanan = calculateLabaBulanan().map((lb, idx) => ({
+                "No": idx + 1,
+                "Bulan / Tahun": lb.bulan || '-',
+                "Total Beli Bulanan": Number(lb.totalBeli || 0),
+                "Total Jual Bulanan": Number(lb.totalJual || 0),
+                "Total Laba": Number(lb.laba || 0)
+            }));
+            const wsLabaBulanan = XLSX.utils.json_to_sheet(dataLabaBulanan);
+            XLSX.utils.book_append_sheet(wb, wsLabaBulanan, "Laba Per Bulan");
+
+            // Simpan file Excel
             XLSX.writeFile(wb, `Laporan_TokoKita_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
