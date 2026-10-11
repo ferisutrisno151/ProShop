@@ -1681,9 +1681,29 @@
         }
     </script>
     <script>
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbzm_PoxliBid6OmCmfYntr8BBs_NTUhVfao21eTMjE-fraJTkObD8ANNofpFKeUYfUwpw/exec"; 
-  const SESSION_DURATION = 8 * 60 * 60 * 1000; // Sesi aktif selama 8 jam
+  const GAS_URL = "https://script.google.com/macros/s/AKfycby5bjQKv1Zak3a8tsfLWi8TZP8cJsr2RdnEMVDRovBcSCKRxxaPT3swkHttMF2esa4/exec"; 
+  const SESSION_DURATION = 8 * 60 * 60 * 1000; // Sesi 8 jam
   let checkInterval = null;
+
+  // Helper fungsi JSONP agar tembus CORS Google Apps Script
+  function callGAS(params, callbackName, successCallback) {
+    const url = new URL(GAS_URL);
+    Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+    url.searchParams.append('callback', callbackName);
+
+    window[callbackName] = function(data) {
+      successCallback(data);
+      delete window[callbackName];
+      scriptTag.remove();
+    };
+
+    const scriptTag = document.createElement('script');
+    scriptTag.src = url.toString();
+    scriptTag.onerror = function() {
+      console.error("Gagal memuat skrip server.");
+    };
+    document.body.appendChild(scriptTag);
+  }
 
   function verifyProShopAuth() {
     const session = JSON.parse(localStorage.getItem('proshop_auth_session'));
@@ -1713,12 +1733,7 @@
     btn.disabled = true;
     btn.innerText = 'Mengirim Permintaan...';
 
-    fetch(GAS_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'request', name: nameInput })
-    })
-    .then(res => res.json())
-    .then(data => {
+    callGAS({ action: 'request', name: nameInput }, 'cbRequest', function(data) {
       if(data.status === 'success') {
         localStorage.setItem('proshop_auth_session', JSON.stringify({
           requestId: data.requestId,
@@ -1737,12 +1752,6 @@
         btn.disabled = false;
         btn.innerText = 'Kirim Permintaan Akses';
       }
-    })
-    .catch(err => {
-      console.error(err);
-      alert('Terjadi kesalahan koneksi.');
-      btn.disabled = false;
-      btn.innerText = 'Kirim Permintaan Akses';
     });
   }
 
@@ -1750,12 +1759,7 @@
     if (checkInterval) clearInterval(checkInterval);
     
     checkInterval = setInterval(() => {
-      fetch(GAS_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'check', requestId: requestId })
-      })
-      .then(res => res.json())
-      .then(data => {
+      callGAS({ action: 'check', requestId: requestId }, 'cbCheck_' + Date.now(), function(data) {
         const statusText = document.getElementById('auth-status');
         if (data.status === 'APPROVED') {
           clearInterval(checkInterval);
@@ -1783,14 +1787,12 @@
             document.getElementById('auth-submit-btn').innerText = 'Kirim Permintaan Akses';
           }, 2000);
         }
-      })
-      .catch(err => console.log(err));
+      });
     }, 4000);
   }
 
   // Jalankan verifikasi saat halaman dimuat
   verifyProShopAuth();
-</script>
-
+    </script>
 </body>
 </html>
