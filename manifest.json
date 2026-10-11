@@ -1,6 +1,6 @@
 {
-  "name": "TokoKita ProShop",
-  "short_name": "TokoKita",
+  "name": "ProShop - TokoKita",
+  "short_name": "ProShop",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f172a",
