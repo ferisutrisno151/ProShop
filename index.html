@@ -949,21 +949,25 @@
         }
 
         function calculateLabaBulanan() {
-            const map = {};
-            appState.pembelian.forEach(p => {
-                if (!p.tglBeli) return;
-                const month = p.tglBeli.substring(0, 7);
-                if (!map[month]) map[month] = { bulan: month, totalBeli: 0, totalJual: 0 };
-                map[month].totalBeli += Number(p.totalHarga || (p.qty * p.harsat) || 0);
-            });
-            appState.penjualan.forEach(j => {
-                if (!j.tglJual) return;
-                const month = j.tglJual.substring(0, 7);
-                if (!map[month]) map[month] = { bulan: month, totalBeli: 0, totalJual: 0 };
-                map[month].totalBeli += Number(j.totalHarga || (j.qty * j.harsat) || 0);
-            });
-            return Object.values(map).sort((a, b) => b.bulan.localeCompare(a.bulan)).map(item => ({ ...item, laba: item.totalJual - item.totalBeli }));
-        }
+  const map = {};
+  appState.pembelian.forEach(p => {
+    if (!p.tglBeli) return;
+    const month = p.tglBeli.substring(0, 7);
+    if (!map[month]) map[month] = { bulan: month, totalBeli: 0, totalJual: 0 };
+    map[month].totalBeli += Number(p.totalHarga || (p.qty * p.harsat) || 0);
+  });
+  appState.penjualan.forEach(j => {
+    if (!j.tglJual) return;
+    const month = j.tglJual.substring(0, 7);
+    if (!map[month]) map[month] = { bulan: month, totalBeli: 0, totalJual: 0 };
+    map[month].totalJual += Number(j.totalHargaJual || (j.qty * j.harsat) || 0);
+  });
+  return Object.values(map).sort((a, b) => b.bulan.localeCompare(a.bulan)).map(item => ({
+    ...item,
+    laba: item.totalJual - item.totalBeli
+  }));
+}
+
 
         function renderAll() {
             renderDashboardCards();
