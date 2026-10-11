@@ -1724,7 +1724,7 @@
   }
 
 
-  function submitAuthRequest() {
+    function submitAuthRequest() {
     const nameInput = document.getElementById('auth-username').value.trim();
     if (!nameInput) {
       alert('Silakan masukkan nama Anda terlebih dahulu!');
@@ -1735,9 +1735,22 @@
     const statusText = document.getElementById('auth-status');
     btn.disabled = true;
     btn.innerText = 'Mengirim Permintaan...';
+    statusText.style.display = 'block';
+    statusText.innerText = 'Menghubungkan ke server...';
 
-    callGAS({ action: 'request', name: nameInput }, 'cbRequest', function(data) {
-      if(data.status === 'success') {
+    // Pengaman timeout 10 detik jika server lambat
+    const timeout = setTimeout(() => {
+      if (btn.innerText === 'Mengirim Permintaan...') {
+        alert('Gagal: Server Google Apps Script tidak merespons. Pastikan URL baru sudah benar dan di-deploy.');
+        btn.disabled = false;
+        btn.innerText = 'Kirim Permintaan Akses';
+        statusText.style.display = 'none';
+      }
+    }, 10000);
+
+    callGAS({ action: 'request', name: nameInput }, 'cbRequest_' + Date.now(), function(data) {
+      clearTimeout(timeout);
+      if(data && data.status === 'success') {
         localStorage.setItem('proshop_auth_session', JSON.stringify({
           requestId: data.requestId,
           name: nameInput,
@@ -1746,14 +1759,15 @@
         }));
 
         statusText.style.display = 'block';
-        statusText.innerText = 'Permintaan terkirim. Menunggu persetujuan Admin via Email...';
+        statusText.innerText = 'Permintaan terkirim! Menunggu persetujuan Admin via Email...';
         btn.innerText = 'Menunggu Konfirmasi...';
         
         startPollingStatus(data.requestId);
       } else {
-        alert('Gagal mengirim permintaan.');
+        alert('Gagal mengirim permintaan dari server.');
         btn.disabled = false;
         btn.innerText = 'Kirim Permintaan Akses';
+        statusText.style.display = 'none';
       }
     });
   }
