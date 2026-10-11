@@ -1784,8 +1784,8 @@
     }, 4000);
   }
 
-  // EKsekusi otomatis saat dokumen selesai dimuat
-  document.addEventListener("DOMContentLoaded", verifyProShopAuth);
+  // Eksekusi langsung tanpa menunggu DOMContentLoaded karena script ada di bagian bawah
+  verifyProShopAuth();
 </script>
 </body>
 </html>
