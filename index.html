@@ -21,7 +21,7 @@
             background-color: rgba(0, 0, 0, 0.5);
             transition: opacity 0.3s ease;
         }
-        /* Mencegah teks bertumpuk / warptext di dalam kolom tabel */
+        /* Mencegah teks bertumpuk / wraptext di dalam kolom tabel */
         table th, table td {
             white-space: nowrap;
         }
@@ -640,7 +640,7 @@
             document.getElementById('input-import-excel').addEventListener('change', importExcel);
         }
 
-        // --- PULL TO REFRESH LOGIC ---
+        // --- PULL TO REFRESH LOGIC (RELOAD DATA TERUPDATE TANPA RESET) ---
         function initPullToRefresh() {
             let touchStartY = 0;
             let touchMoveY = 0;
@@ -669,10 +669,10 @@
 
                     if (distance > threshold) {
                         pullIcon.style.transform = 'rotate(180deg)';
-                        pullText.innerText = 'Lepaskan untuk menyegarkan...';
+                        pullText.innerText = 'Lepaskan untuk memperbarui data...';
                     } else {
                         pullIcon.style.transform = 'rotate(0deg)';
-                        pullText.innerText = 'Tarik ke bawah untuk menyegarkan...';
+                        pullText.innerText = 'Tarik ke bawah untuk memperbarui...';
                     }
                 }
             }, { passive: true });
@@ -681,8 +681,8 @@
                 if (touchStartY === 0) return;
                 const distance = touchMoveY - touchStartY;
                 if (distance > threshold && window.scrollY === 0) {
-                    pullText.innerText = 'Memperbarui data...';
-                    manualRefresh();
+                    pullText.innerText = 'Memuat data terbaru...';
+                    manualRefresh(); // Memanggil fungsi fetch data terupdate tanpa mereset aplikasi
                 }
                 touchStartY = 0;
                 touchMoveY = 0;
@@ -696,7 +696,6 @@
         // --- FIREBASE & LOCAL STORAGE DATA SYNC ---
         function initFirebaseOrLocal() {
             if (isFirebaseOnline && db) {
-                // Load data pertama kali tanpa menunggu event 'value' kosong
                 db.ref('tokokita_data').once('value').then((snapshot) => {
                     const val = snapshot.val();
                     if (val) {
@@ -711,7 +710,6 @@
                     loadFromLocalStorage();
                 });
 
-                // Listener realtime untuk perubahan dari perangkat lain
                 db.ref('tokokita_data').on('value', (snapshot) => {
                     const val = snapshot.val();
                     if (val) {
