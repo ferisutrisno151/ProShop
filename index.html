@@ -45,6 +45,13 @@
             background: #94a3b8;
         }
     </style>
+    <!-- EmailJS SDK -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script type="text/javascript">
+   (function(){
+      emailjs.init("wYH4cVCenUWq54JXa");
+   })();
+</script>
 </head>
 <body class="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
 
@@ -1662,5 +1669,108 @@
             }
         }
     </script>
+    <!-- MODAL OTORITAS AKSES PROSHOP -->
+<div id="auth-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center hidden">
+    <div class="bg-white rounded-2xl p-6 w-11/12 max-w-md shadow-2xl">
+        <div class="text-center mb-4">
+            <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-2 text-xl font-bold">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-800">Otoritas Masuk ProShop</h3>
+            <p class="text-xs text-slate-500 mt-1">Masukkan nama Anda untuk meminta izin akses kepada Administrator.</p>
+        </div>
+        <div id="auth-form-area">
+            <input type="text" id="input-worker-name" placeholder="Nama Lengkap / Rekan Kerja" class="w-full px-4 py-3 border border-slate-300 rounded-xl mb-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <button onclick="sendAccessRequestEmail()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition duration-200 text-sm">
+                Kirim Permintaan Akses
+            </button>
+        </div>
+        <div id="auth-waiting-area" class="hidden text-center py-4">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-3"></div>
+            <p class="text-sm font-medium text-slate-700">Permintaan terkirim ke Email Admin!</p>
+            <p class="text-xs text-slate-400 mt-1">Menunggu persetujuan Feri Sutrisno...</p>
+        </div>
+    </div>
+</div>
+    <script>
+// --- SISTEM OTORITAS AKSES EMAIL & SESI 8 JAM ---
+const SESSION_DURATION = 8 * 60 * 60 * 1000; // Batasan durasi 8 Jam
+
+document.addEventListener("DOMContentLoaded", () => {
+    checkEmailSession();
+});
+
+function checkEmailSession() {
+    const session = JSON.parse(localStorage.getItem('proshop_email_session'));
+    const now = new Date().getTime();
+
+    if (session && session.status === 'approved' && (now - session.timestamp < SESSION_DURATION)) {
+        // Sesi masih aktif (< 8 jam), sembunyikan pop-up
+        document.getElementById('auth-modal').classList.add('hidden');
+    } else {
+        // Tampilkan pop-up permintaan akses
+        document.getElementById('auth-modal').classList.remove('hidden');
+        const deviceId = localStorage.getItem('proshop_device_id');
+        if (deviceId) {
+            listenFirebaseApproval(deviceId);
+        }
+    }
+}
+function sendAccessRequestEmail() {
+    const workerName = document.getElementById('input-worker-name').value.trim();
+    if (!workerName) {
+        alert('Mohon masukkan nama Anda terlebih dahulu!');
+        return;
+    }
+
+    const deviceId = 'dev_' + Math.random().toString(36).substring(2, 9);
+    localStorage.setItem('proshop_device_id', deviceId);
+
+    const templateParams = {
+        worker_name: workerName,
+        user_name: workerName,
+        time: new Date().toLocaleString(),
+        device_id: deviceId
+    };
+
+    // Kirim email via EmailJS menggunakan data Anda
+    emailjs.send('service_gock5cy', 'template_sd2i92o', templateParams)
+        .then(() => {
+            document.getElementById('auth-form-area').classList.add('hidden');
+            document.getElementById('auth-waiting-area').classList.remove('hidden');
+            
+            // Simpan status pending ke Firebase Realtime Database
+            database.ref('access_requests/' + deviceId).set({
+                name: workerName,
+                status: 'pending',
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            listenFirebaseApproval(deviceId);
+        }, (error) => {
+            alert('Gagal mengirim email, periksa koneksi atau konfigurasi EmailJS.');
+            console.error(error);
+        });
+}
+
+function listenFirebaseApproval(deviceId) {
+    const ref = database.ref('access_requests/' + deviceId);
+    ref.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data && data.status === 'approved') {
+            localStorage.setItem('proshop_email_session', JSON.stringify({
+                status: 'approved',
+                timestamp: new Date().getTime()
+            }));
+            document.getElementById('auth-modal').classList.add('hidden');
+            location.reload(); // Refresh otomatis, aplikasi terbuka penuh
+        } else if (data && data.status === 'rejected') {
+            alert('Akses Anda ditolak oleh Administrator.');
+            document.getElementById('auth-form-area').classList.remove('hidden');
+            document.getElementById('auth-waiting-area').classList.add('hidden');
+        }
+    });
+}
+  </script>
 </body>
 </html>
