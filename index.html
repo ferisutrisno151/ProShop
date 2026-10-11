@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Toko Kolaboratif Real-Time</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS (Excel) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Firebase Apps -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+    <style>
+        .sidebar-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            transition: opacity 0.3s ease;
+        }
+        .pull-indicator {
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Pull-to-Refresh Visual Indicator -->
+    <div id="pull-indicator" class="fixed top-0 left-1/2 -translate-x-1/2 mt-2 z-50 bg-indigo-600 text-white px-4 py-2 rounded-full shadow-lg text-xs font-semibold flex items-center space-x-2 opacity-0 pointer-events-none transition-all">
+        <i id="pull-icon" class="fas fa-arrow-down transition-transform duration-200"></i>
+        <span id="pull-text">Tarik ke bawah untuk menyegarkan...</span>
+    </div>
+
+    <!-- HEADER / NAVBAR -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <button id="btn-hamburger" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-lg">
+                        T
+                    </div>
+                    <h1 class="text-lg font-bold text-slate-800 hidden sm:block">TokoKita <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-normal">Realtime</span></h1>
+                </div>
+            </div>
+
+            <!-- Header Action Controls -->
+            <div class="flex items-center space-x-2">
+                <button id="btn-header-refresh" class="flex items-center space-x-1 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                    <i class="fas fa-sync-alt text-slate-500" id="refresh-icon"></i>
+                    <span class="hidden md:inline">Refresh Data</span>
+                </button>
+                <button id="btn-export-excel" class="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition shadow-sm">
+                    <i class="fas fa-file-excel"></i>
+                    <span class="hidden sm:inline">Export Excel</span>
+                </button>
+                <label class="flex items-center space-x-1 bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition shadow-sm cursor-pointer">
+                    <i class="fas fa-file-import"></i>
+                    <span class="hidden sm:inline">Import Excel</span>
+                    <input type="file" id="input-import-excel" accept=".xlsx, .xls" class="hidden">
+                </label>
+            </div>
+        </div>
+    </header>
+
+    <!-- OVERLAY SIDEBAR -->
+    <div id="sidebar-backdrop" class="fixed inset-0 z-40 sidebar-overlay hidden"></div>
+    <aside id="sidebar" class="fixed top-0 left-0 w-72 h-full bg-slate-900 text-slate-200 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between shadow-2xl">
+        <div>
+            <!-- Sidebar Header -->
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-store text-indigo-400 text-xl"></i>
+                    <span class="font-bold text-white text-lg">Navigasi Toko</span>
+                </div>
+                <button id="btn-close-sidebar" class="text-slate-400 hover:text-white p-1">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="p-3 space-y-1">
+                <button data-target="view-dashboard" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white font-medium text-sm transition active-nav">
+                    <i class="fas fa-chart-pie w-5 text-indigo-400"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button data-target="view-pembelian" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white font-medium text-sm transition">
+                    <i class="fas fa-shopping-cart w-5 text-blue-400"></i>
+                    <span>Fitur Pembelian</span>
+                </button>
+                <button data-target="view-penjualan" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white font-medium text-sm transition">
+                    <i class="fas fa-cash-register w-5 text-emerald-400"></i>
+                    <span>Fitur Penjualan</span>
+                </button>
+                <button data-target="view-stok" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white font-medium text-sm transition">
+                    <i class="fas fa-boxes w-5 text-amber-400"></i>
+                    <span>Stok & Laba</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Sidebar Footer Actions (JSON & Share/APK) -->
+        <div class="p-4 border-t border-slate-800 space-y-2 bg-slate-950">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Manajemen Data</div>
+            <button id="btn-export-json" class="w-full flex items-center justify-between px-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 rounded-lg transition">
+                <span><i class="fas fa-download mr-2 text-indigo-400"></i>Export JSON</span>
+                <i class="fas fa-chevron-right text-slate-500 text-xxs"></i>
+            </button>
+            <label class="w-full flex items-center justify-between px-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 rounded-lg transition cursor-pointer">
+                <span><i class="fas fa-upload mr-2 text-indigo-400"></i>Import JSON</span>
+                <input type="file" id="input-import-json" accept=".json" class="hidden">
+                <i class="fas fa-chevron-right text-slate-500 text-xxs"></i>
+            </label>
+            <div class="pt-2 border-t border-slate-800/80 flex space-x-2">
+                <button id="btn-share-link" class="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium flex items-center justify-center space-x-1 transition">
+                    <i class="fas fa-share-alt"></i>
+                    <span>Bagikan</span>
+                </button>
+                <button id="btn-download-apk" class="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-medium flex items-center justify-center space-x-1 transition">
+                    <i class="fas fa-mobile-alt"></i>
+                    <span>App APK</span>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- VIEW 1: DASHBOARD -->
+        <section id="view-dashboard" class="view-section space-y-6">
+            <!-- Summary Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Card Pembelian -->
+                <div onclick="openDashboardModal('pembelian')" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition cursor-pointer group">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Pembelian</p>
+                            <h3 id="dash-qty-pembelian" class="text-2xl font-bold text-slate-800 mt-1">0 Item</h3>
+                        </div>
+                        <div class="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition">
+                            <i class="fas fa-shopping-bag text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-xs text-blue-600 font-semibold group-hover:underline">
+                        <span>Lihat Rincian</span>
+                        <i class="fas fa-arrow-right ml-1"></i>
+                    </div>
+                </div>
+
+                <!-- Card Penjualan -->
+                <div onclick="openDashboardModal('penjualan')" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition cursor-pointer group">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Penjualan</p>
+                            <h3 id="dash-qty-penjualan" class="text-2xl font-bold text-slate-800 mt-1">0 Item</h3>
+                        </div>
+                        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition">
+                            <i class="fas fa-chart-line text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-xs text-emerald-600 font-semibold group-hover:underline">
+                        <span>Lihat Rincian</span>
+                        <i class="fas fa-arrow-right ml-1"></i>
+                    </div>
+                </div>
+
+                <!-- Card Stok Barang -->
+                <div onclick="openDashboardModal('stok')" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition cursor-pointer group">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Stok Barang</p>
+                            <h3 id="dash-qty-stok" class="text-2xl font-bold text-slate-800 mt-1">0 Jenis</h3>
+                        </div>
+                        <div class="p-3 bg-amber-50 text-amber-600 rounded-xl group-hover:bg-amber-600 group-hover:text-white transition">
+                            <i class="fas fa-boxes text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-xs text-amber-600 font-semibold group-hover:underline">
+                        <span>Lihat Rincian</span>
+                        <i class="fas fa-arrow-right ml-1"></i>
+                    </div>
+                </div>
+
+                <!-- Card Laba -->
+                <div onclick="openDashboardModal('laba')" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition cursor-pointer group">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Laba</p>
+                            <h3 id="dash-total-laba" class="text-2xl font-bold text-indigo-600 mt-1">Rp 0</h3>
+                        </div>
+                        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition">
+                            <i class="fas fa-wallet text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-xs text-indigo-600 font-semibold group-hover:underline">
+                        <span>Rincian Laba (Harian/Bulanan)</span>
+                        <i class="fas fa-arrow-right ml-1"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Bar Chart: Pembelian vs Penjualan -->
+                <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-slate-800 text-base">Grafik Pembelian vs Penjualan</h3>
+                        <span class="text-xs text-slate-400">Berdasarkan Nama Barang</span>
+                    </div>
+                    <div class="relative h-72 w-full">
+                        <canvas id="chartPembelianPenjualan"></canvas>
+                    </div>
+                </div>
+
+                <!-- Donut Chart: Stok Barang -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-slate-800 text-base">Komposisi Stok Barang</h3>
+                        <span class="text-xs text-slate-400">Qty Tersedia</span>
+                    </div>
+                    <div class="relative h-72 w-full flex items-center justify-center">
+                        <canvas id="chartDonutStok"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 2: PEMBELIAN -->
+        <section id="view-pembelian" class="view-section hidden space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Data Pembelian</h2>
+                    <p class="text-xs text-slate-500">Kelola riwayat barang masuk dari supplier</p>
+                </div>
+                <button onclick="openPembelianModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition flex items-center space-x-2 shadow-sm">
+                    <i class="fas fa-plus"></i>
+                    <span>Tambah Pembelian</span>
+                </button>
+            </div>
+
+            <!-- Table Pembelian -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs md:text-sm">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
+                            <tr>
+                                <th class="py-3 px-4 w-12 text-center">No</th>
+                                <th class="py-3 px-4">Tgl Beli</th>
+                                <th class="py-3 px-4">Nama Barang</th>
+                                <th class="py-3 px-4 text-center">Qty</th>
+                                <th class="py-3 px-4 text-center">Satuan</th>
+                                <th class="py-3 px-4 text-right">Harga Satuan</th>
+                                <th class="py-3 px-4 text-right">Total Harga</th>
+                                <th class="py-3 px-4 text-center w-28">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-pembelian" class="divide-y divide-slate-100 text-slate-700">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 3: PENJUALAN -->
+        <section id="view-penjualan" class="view-section hidden space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Data Penjualan</h2>
+                    <p class="text-xs text-slate-500">Kelola transaksi barang keluar ke konsumen</p>
+                </div>
+                <button onclick="openPenjualanModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition flex items-center space-x-2 shadow-sm">
+                    <i class="fas fa-plus"></i>
+                    <span>Tambah Penjualan</span>
+                </button>
+            </div>
+
+            <!-- Table Penjualan -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs md:text-sm">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
+                            <tr>
+                                <th class="py-3 px-4 w-12 text-center">No</th>
+                                <th class="py-3 px-4">Tgl Jual</th>
+                                <th class="py-3 px-4">Nama Barang</th>
+                                <th class="py-3 px-4 text-center">Qty</th>
+                                <th class="py-3 px-4 text-center">Satuan</th>
+                                <th class="py-3 px-4 text-right">Harga Satuan</th>
+                                <th class="py-3 px-4 text-right">Total Harga</th>
+                                <th class="py-3 px-4 text-center w-28">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-penjualan" class="divide-y divide-slate-100 text-slate-700">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 4: STOK BARANG & LABA -->
+        <section id="view-stok" class="view-section hidden space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Stok Barang & Analisis Laba</h2>
+                    <p class="text-xs text-slate-500">Perhitungan inventaris dan keuntungan otomatis</p>
+                </div>
+            </div>
+
+            <!-- Tabel Stok Barang -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <h3 class="font-bold text-slate-800 text-sm">Status Inventaris Barang</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs md:text-sm">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
+                            <tr>
+                                <th class="py-3 px-4 w-12 text-center">No</th>
+                                <th class="py-3 px-4">Tgl Update</th>
+                                <th class="py-3 px-4">Nama Barang</th>
+                                <th class="py-3 px-4 text-center">Satuan</th>
+                                <th class="py-3 px-4 text-center">Total Beli</th>
+                                <th class="py-3 px-4 text-center">Total Jual</th>
+                                <th class="py-3 px-4 text-center">Stok</th>
+                                <th class="py-3 px-4 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-stok-main" class="divide-y divide-slate-100 text-slate-700">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Panel Tombol Laba -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button onclick="toggleLabaSection('harian')" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:border-indigo-500 transition text-left flex items-center justify-between group">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition">
+                            <i class="fas fa-calendar-day text-lg"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm">Lihat Tabel Laba Per Hari</h4>
+                            <p class="text-xs text-slate-500">Rekapitulasi transaksi harian</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-down text-slate-400 group-hover:text-indigo-600 transition"></i>
+                </button>
+
+                <button onclick="toggleLabaSection('bulanan')" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:border-purple-500 transition text-left flex items-center justify-between group">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-3 bg-purple-50 text-purple-600 rounded-xl group-hover:bg-purple-600 group-hover:text-white transition">
+                            <i class="fas fa-calendar-alt text-lg"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm">Lihat Tabel Laba Per Bulan</h4>
+                            <p class="text-xs text-slate-500">Rekapitulasi akumulasi bulanan</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-down text-slate-400 group-hover:text-purple-600 transition"></i>
+                </button>
+            </div>
+
+            <!-- Tabel Laba Per Hari (Collapsible) -->
+            <div id="section-laba-harian" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hidden">
+                <div class="px-5 py-4 border-b border-slate-100 bg-indigo-50/50 flex justify-between items-center">
+                    <h3 class="font-bold text-indigo-900 text-sm"><i class="fas fa-calendar-day mr-2"></i>Laba Per Hari (Hari Ini / All Days)</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs md:text-sm">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
+                            <tr>
+                                <th class="py-3 px-4 w-12 text-center">No</th>
+                                <th class="py-3 px-4">Tanggal</th>
+                                <th class="py-3 px-4 text-right">Total Harga Beli</th>
+                                <th class="py-3 px-4 text-right">Total Harga Jual</th>
+                                <th class="py-3 px-4 text-right">Total Laba</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-laba-harian" class="divide-y divide-slate-100 text-slate-700">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tabel Laba Per Bulan (Collapsible) -->
+            <div id="section-laba-bulanan" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hidden">
+                <div class="px-5 py-4 border-b border-slate-100 bg-purple-50/50 flex justify-between items-center">
+                    <h3 class="font-bold text-purple-900 text-sm"><i class="fas fa-calendar-alt mr-2"></i>Laba Per Bulan</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs md:text-sm">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
+                            <tr>
+                                <th class="py-3 px-4 w-12 text-center">No</th>
+                                <th class="py-3 px-4">Bulan / Tahun</th>
+                                <th class="py-3 px-4 text-right">Total Beli Bulanan</th>
+                                <th class="py-3 px-4 text-right">Total Jual Bulanan</th>
+                                <th class="py-3 px-4 text-right">Total Laba</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-laba-bulanan" class="divide-y divide-slate-100 text-slate-700">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL POPUP PEMBELIAN (MULTI-ITEM) -->
+    <div id="modal-pembelian" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <h3 id="modal-pembelian-title" class="font-bold text-slate-800 text-lg">Input Pembelian Barang</h3>
+                <button onclick="closePembelianModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fas fa-times text-lg"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-4 flex-1">
+                <div class="w-full sm:w-1/2">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal Pembelian</label>
+                    <input type="date" id="pembelian-tgl" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-semibold text-slate-600">Daftar Item Pembelian</label>
+                        <button onclick="addPembelianItemRow()" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1 rounded-lg font-medium flex items-center space-x-1">
+                            <i class="fas fa-plus"></i>
+                            <span>Tambah Item</span>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-3" id="pembelian-items-container">
+                        <!-- Dynamic item rows inserted here -->
+                    </div>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end space-x-3">
+                <button onclick="closePembelianModal()" class="px-4 py-2 border border-slate-300 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100">Batal</button>
+                <button onclick="savePembelian()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-medium shadow-sm">Simpan Pembelian</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP PENJUALAN (MULTI-ITEM) -->
+    <div id="modal-penjualan" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <h3 id="modal-penjualan-title" class="font-bold text-slate-800 text-lg">Input Penjualan Barang</h3>
+                <button onclick="closePenjualanModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fas fa-times text-lg"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-4 flex-1">
+                <div class="w-full sm:w-1/2">
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal Penjualan</label>
+                    <input type="date" id="penjualan-tgl" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-semibold text-slate-600">Daftar Item Penjualan</label>
+                        <button onclick="addPenjualanItemRow()" class="text-xs bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-3 py-1 rounded-lg font-medium flex items-center space-x-1">
+                            <i class="fas fa-plus"></i>
+                            <span>Tambah Item</span>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-3" id="penjualan-items-container">
+                        <!-- Dynamic item rows inserted here -->
+                    </div>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end space-x-3">
+                <button onclick="closePenjualanModal()" class="px-4 py-2 border border-slate-300 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100">Batal</button>
+                <button onclick="savePenjualan()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-medium shadow-sm">Simpan Penjualan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL RINCIAN DASHBOARD -->
+    <div id="modal-dashboard-detail" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <h3 id="modal-dash-title" class="font-bold text-slate-800 text-lg">Rincian Data</h3>
+                <button onclick="closeDashboardModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fas fa-times text-lg"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 space-y-6" id="modal-dash-content">
+                <!-- Dynamic Content Tables inserted here -->
+            </div>
+            <div class="px-6 py-3 border-t border-slate-200 bg-slate-50 flex justify-end">
+                <button onclick="closeDashboardModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-xs font-medium">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC & FIREBASE INTEGRATION -->
+    <script>
+        // --- FIREBASE CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDemoConfigForGitHubPagesDeploymentOnly",
+            authDomain: "tokokita-demo.firebaseapp.com",
+            databaseURL: "https://tokokita-demo-default-rtdb.firebaseio.com",
+            projectId: "tokokita-demo",
+            storageBucket: "tokokita-demo.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:1234567890:web:demo"
+        };
+
+        // Initialize Firebase
+        let db = null;
+        let isFirebaseOnline = false;
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+            isFirebaseOnline = true;
+        } catch (e) {
+            console.warn("Firebase tidak terhubung. Berjalan dalam mode LocalStorage Fallback.", e);
+        }
+
+        // --- GLOBAL APP STATE ---
+        let appState = {
+            pembelian: [],
+            penjualan: []
+        };
+
+        let editingPembelianId = null;
+        let editingPenjualanId = null;
+
+        // Chart instances
+        let chartBarInstance = null;
+        let chartDonutInstance = null;
+
+        // --- DOM INITIALIZATION ---
+        document.addEventListener("DOMContentLoaded", () => {
+            initNavigation();
+            initSidebar();
+            initPullToRefresh();
+            initFirebaseOrLocal();
+            setDefaultDates();
+        });
+
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('pembelian-tgl').value = today;
+            document.getElementById('penjualan-tgl').value = today;
+        }
+
+        // --- NAVIGATION CONTROLLER ---
+        function initNavigation() {
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const target = item.getAttribute('data-target');
+                    showView(target);
+                    closeSidebar();
+                });
+            });
+        }
+
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
+            const activeView = document.getElementById(viewId);
+            if (activeView) activeView.classList.remove('hidden');
+
+            document.querySelectorAll('.nav-item').forEach(item => {
+                if (item.getAttribute('data-target') === viewId) {
+                    item.classList.add('bg-slate-800', 'text-white');
+                } else {
+                    item.classList.remove('bg-slate-800', 'text-white');
+                }
+            });
+
+            // Re-render charts or tables if switching to dashboard or stok
+            renderAll();
+        }
+
+        // --- SIDEBAR OVERLAY CONTROLLER ---
+        function initSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            const btnHamburger = document.getElementById('btn-hamburger');
+            const btnClose = document.getElementById('btn-close-sidebar');
+
+            function openSidebar() {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            }
+
+            function closeSidebar() {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            }
+
+            btnHamburger.addEventListener('click', openSidebar);
+            btnClose.addEventListener('click', closeSidebar);
+            backdrop.addEventListener('click', closeSidebar);
+
+            window.closeSidebar = closeSidebar;
+
+            // Sidebar Buttons Event Handlers
+            document.getElementById('btn-export-json').addEventListener('click', exportJSON);
+            document.getElementById('input-import-json').addEventListener('change', importJSON);
+            document.getElementById('btn-share-link').addEventListener('click', shareApp);
+            document.getElementById('btn-download-apk').addEventListener('click', downloadAPK);
+
+            // Header Buttons Event Handlers
+            document.getElementById('btn-header-refresh').addEventListener('click', manualRefresh);
+            document.getElementById('btn-export-excel').addEventListener('click', exportExcel);
+            document.getElementById('input-import-excel').addEventListener('change', importExcel);
+        }
+
+        // --- PULL TO REFRESH LOGIC ---
+        function initPullToRefresh() {
+            let touchStartY = 0;
+            let touchMoveY = 0;
+            const pullIndicator = document.getElementById('pull-indicator');
+            const pullIcon = document.getElementById('pull-icon');
+            const pullText = document.getElementById('pull-text');
+            const threshold = 100;
+
+            window.addEventListener('touchstart', (e) => {
+                if (window.scrollY === 0) {
+                    touchStartY = e.touches[0].clientY;
+                } else {
+                    touchStartY = 0;
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (touchStartY === 0) return;
+                touchMoveY = e.touches[0].clientY;
+                const distance = touchMoveY - touchStartY;
+
+                if (distance > 0 && window.scrollY === 0) {
+                    const opacity = Math.min(distance / threshold, 1);
+                    pullIndicator.style.opacity = opacity;
+                    pullIndicator.style.transform = `translate(-50%, ${Math.min(distance / 2, 50)}px)`;
+
+                    if (distance > threshold) {
+                        pullIcon.style.transform = 'rotate(180deg)';
+                        pullText.innerText = 'Lepaskan untuk menyegarkan...';
+                    } else {
+                        pullIcon.style.transform = 'rotate(0deg)';
+                        pullText.innerText = 'Tarik ke bawah untuk menyegarkan...';
+                    }
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchend', () => {
+                if (touchStartY === 0) return;
+                const distance = touchMoveY - touchStartY;
+                if (distance > threshold && window.scrollY === 0) {
+                    pullText.innerText = 'Memperbarui data...';
+                    manualRefresh();
+                }
+                touchStartY = 0;
+                touchMoveY = 0;
+                setTimeout(() => {
+                    pullIndicator.style.opacity = '0';
+                    pullIndicator.style.transform = 'translate(-50%, 0px)';
+                }, 800);
+            });
+        }
+
+        // --- FIREBASE & LOCAL STORAGE DATA SYNC ---
+        function initFirebaseOrLocal() {
+            if (isFirebaseOnline && db) {
+                db.ref('tokokita_data').on('value', (snapshot) => {
+                    const val = snapshot.val();
+                    if (val) {
+                        appState.pembelian = val.pembelian || [];
+                        appState.penjualan = val.penjualan || [];
+                    } else {
+                        appState.pembelian = [];
+                        appState.penjualan = [];
+                    }
+                    saveToLocalStorage();
+                    renderAll();
+                }, (error) => {
+                    console.warn("Firebase listener error. Switching to localStorage.", error);
+                    loadFromLocalStorage();
+                });
+            } else {
+                loadFromLocalStorage();
+            }
+        }
+
+        function saveData() {
+            saveToLocalStorage();
+            if (isFirebaseOnline && db) {
+                db.ref('tokokita_data').set({
+                    pembelian: appState.pembelian,
+                    penjualan: appState.penjualan
+                }).catch(err => console.warn("Firebase save error:", err));
+            }
+            renderAll();
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('tokokita_pembelian', JSON.stringify(appState.pembelian));
+            localStorage.setItem('tokokita_penjualan', JSON.stringify(appState.penjualan));
+        }
+
+        function loadFromLocalStorage() {
+            const p = localStorage.getItem('tokokita_pembelian');
+            const j = localStorage.getItem('tokokita_penjualan');
+            appState.pembelian = p ? JSON.parse(p) : [];
+            appState.penjualan = j ? JSON.parse(j) : [];
+            renderAll();
+        }
+
+        function manualRefresh() {
+            const icon = document.getElementById('refresh-icon');
+            if (icon) icon.classList.add('fa-spin');
+            
+            if (isFirebaseOnline && db) {
+                db.ref('tokokita_data').once('value').then((snapshot) => {
+                    const val = snapshot.val();
+                    if (val) {
+                        appState.pembelian = val.pembelian || [];
+                        appState.penjualan = val.penjualan || [];
+                    }
+                    renderAll();
+                    if (icon) icon.classList.remove('fa-spin');
+                }).catch(() => {
+                    loadFromLocalStorage();
+                    if (icon) icon.classList.remove('fa-spin');
+                });
+            } else {
+                loadFromLocalStorage();
+                setTimeout(() => { if (icon) icon.classList.remove('fa-spin'); }, 400);
+            }
+        }
+
+        // --- CORE CALCULATIONS & DATA HELPER ---
+        function formatRp(number) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number || 0);
+        }
+
+        function calculateStok() {
+            const map = {};
+
+            // Accumulate Pembelian
+            appState.pembelian.forEach(item => {
+                const name = (item.namaBarang || '').trim();
+                if (!name) return;
+                if (!map[name]) {
+                    map[name] = { namaBarang: name, totalBeli: 0, totalJual: 0, satuan: item.satuan || 'Pcs', lastUpdate: item.tglBeli };
+                }
+                map[name].totalBeli += Number(item.qty || 0);
+                if (item.satuan) map[name].satuan = item.satuan;
+                if (item.tglBeli > map[name].lastUpdate) map[name].lastUpdate = item.tglBeli;
+            });
+
+            // Deduct Penjualan
+            appState.penjualan.forEach(item => {
+                const name = (item.namaBarang || '').trim();
+                if (!name) return;
+                if (!map[name]) {
+                    map[name] = { namaBarang: name, totalBeli: 0, totalJual: 0, satuan: item.satuan || 'Pcs', lastUpdate: item.tglJual };
+                }
+                map[name].totalJual += Number(item.qty || 0);
+                if (item.tglJual > map[name].lastUpdate) map[name].lastUpdate = item.tglJual;
+            });
+
+            return Object.values(map).map(item => {
+                const stok = item.totalBeli - item.totalJual;
+                return {
+                    ...item,
+                    stok: stok,
+                    status: stok > 0 ? 'Tersedia' : 'Habis'
+                };
+            });
+        }
+
+        function calculateLabaHarian() {
+            const map = {};
+
+            appState.pembelian.forEach(p => {
+                const tgl = p.tglBeli;
+                if (!tgl) return;
+                if (!map[tgl]) map[tgl] = { tgl, totalBeli: 0, totalJual: 0 };
+                map[tgl].totalBeli += Number(p.totalHarga || (p.qty * p.harsat) || 0);
+            });
+
+            appState.penjualan.forEach(j => {
+                const tgl = j.tglJual;
+                if (!tgl) return;
+                if (!map[tgl]) map[tgl] = { tgl, totalBeli: 0, totalJual: 0 };
+                map[tgl].totalJual += Number(j.totalHarga || (j.qty * j.harsat) || 0);
+            });
+
+            return Object.values(map).sort((a, b) => b.tgl.localeCompare(a.tgl)).map(item => ({
+                ...item,
+                laba: item.totalJual - item.totalBeli
+            }));
+        }
+
+        function calculateLabaBulanan() {
+            const map = {};
+
+            appState.pembelian.forEach(p => {
+                if (!p.tglBeli) return;
+                const month = p.tglBeli.substring(0, 7); // YYYY-MM
+                if (!map[month]) map[month] = { bulan: month, totalBeli: 0, totalJual: 0 };
+                map[month].totalBeli += Number(p.totalHarga || (p.qty * p.harsat) || 0);
+            });
+
+            appState.penjualan.forEach(j => {
+                if (!j.tglJual) return;
+                const month = j.tglJual.substring(0, 7);
+                if (!map[month]) map[month] = { bulan: month, totalBeli: 0, totalJual: 0 };
+                map[month].totalJual += Number(j.totalHarga || (j.qty * j.harsat) || 0);
+            });
+
+            return Object.values(map).sort((a, b) => b.bulan.localeCompare(a.bulan)).map(item => ({
+                ...item,
+                laba: item.totalJual - item.totalBeli
+            }));
+        }
+
+        // --- RENDER ALL VIEWS & CHARTS ---
+        function renderAll() {
+            renderDashboardCards();
+            renderTablesPembelian();
+            renderTablesPenjualan();
+            renderTablesStokAndLaba();
+            renderCharts();
+        }
+
+        function renderDashboardCards() {
+            const totalQtyBeli = appState.pembelian.reduce((acc, curr) => acc + Number(curr.qty || 0), 0);
+            const totalQtyJual = appState.penjualan.reduce((acc, curr) => acc + Number(curr.qty || 0), 0);
+            const stokData = calculateStok();
+            const labaHarian = calculateLabaHarian();
+            const grandTotalLaba = labaHarian.reduce((acc, curr) => acc + curr.laba, 0);
+
+            document.getElementById('dash-qty-pembelian').innerText = `${totalQtyBeli} Item`;
+            document.getElementById('dash-qty-penjualan').innerText = `${totalQtyJual} Item`;
+            document.getElementById('dash-qty-stok').innerText = `${stokData.length} Jenis`;
+            document.getElementById('dash-total-laba').innerText = formatRp(grandTotalLaba);
+        }
+
+        function renderTablesPembelian() {
+            const tbody = document.getElementById('tbody-pembelian');
+            tbody.innerHTML = '';
+
+            if (appState.pembelian.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-400">Belum ada data pembelian</td></tr>`;
+                return;
+            }
+
+            appState.pembelian.forEach((item, index) => {
+                const total = Number(item.totalHarga || (item.qty * item.harsat) || 0);
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3 px-4 text-center">${index + 1}</td>
+                        <td class="py-3 px-4 font-medium">${item.tglBeli || '-'}</td>
+                        <td class="py-3 px-4 font-semibold text-slate-800">${item.namaBarang}</td>
+                        <td class="py-3 px-4 text-center">${item.qty}</td>
+                        <td class="py-3 px-4 text-center">${item.satuan || '-'}</td>
+                        <td class="py-3 px-4 text-right">${formatRp(item.harsat)}</td>
+                        <td class="py-3 px-4 text-right font-semibold text-blue-600">${formatRp(total)}</td>
+                        <td class="py-3 px-4 text-center space-x-1">
+                            <button onclick="editPembelianItem('${item.id}')" class="text-blue-600 hover:bg-blue-50 p-1.5 rounded-lg transition" title="Edit"><i class="fas fa-edit"></i></button>
+                            <button onclick="deletePembelianItem('${item.id}')" class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition" title="Hapus"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderTablesPenjualan() {
+            const tbody = document.getElementById('tbody-penjualan');
+            tbody.innerHTML = '';
+
+            if (appState.penjualan.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-400">Belum ada data penjualan</td></tr>`;
+                return;
+            }
+
+            appState.penjualan.forEach((item, index) => {
+                const total = Number(item.totalHarga || (item.qty * item.harsat) || 0);
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3 px-4 text-center">${index + 1}</td>
+                        <td class="py-3 px-4 font-medium">${item.tglJual || '-'}</td>
+                        <td class="py-3 px-4 font-semibold text-slate-800">${item.namaBarang}</td>
+                        <td class="py-3 px-4 text-center">${item.qty}</td>
+                        <td class="py-3 px-4 text-center">${item.satuan || '-'}</td>
+                        <td class="py-3 px-4 text-right">${formatRp(item.harsat)}</td>
+                        <td class="py-3 px-4 text-right font-semibold text-emerald-600">${formatRp(total)}</td>
+                        <td class="py-3 px-4 text-center space-x-1">
+                            <button onclick="editPenjualanItem('${item.id}')" class="text-emerald-600 hover:bg-emerald-50 p-1.5 rounded-lg transition" title="Edit"><i class="fas fa-edit"></i></button>
+                            <button onclick="deletePenjualanItem('${item.id}')" class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition" title="Hapus"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderTablesStokAndLaba() {
+            // Render Stok Table
+            const tbodyStok = document.getElementById('tbody-stok-main');
+            const stokData = calculateStok();
+            tbodyStok.innerHTML = '';
+
+            if (stokData.length === 0) {
+                tbodyStok.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-400">Belum ada data stok barang</td></tr>`;
+            } else {
+                stokData.forEach((item, index) => {
+                    const statusBadge = item.status === 'Tersedia' 
+                        ? `<span class="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-semibold">Tersedia</span>`
+                        : `<span class="bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-semibold">Habis</span>`;
+
+                    tbodyStok.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3 px-4 text-center">${index + 1}</td>
+                            <td class="py-3 px-4 text-slate-500">${item.lastUpdate || '-'}</td>
+                            <td class="py-3 px-4 font-semibold text-slate-800">${item.namaBarang}</td>
+                            <td class="py-3 px-4 text-center">${item.satuan}</td>
+                            <td class="py-3 px-4 text-center font-medium text-blue-600">${item.totalBeli}</td>
+                            <td class="py-3 px-4 text-center font-medium text-emerald-600">${item.totalJual}</td>
+                            <td class="py-3 px-4 text-center font-bold text-slate-900">${item.stok}</td>
+                            <td class="py-3 px-4 text-center">${statusBadge}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // Render Laba Harian
+            const tbodyLabaHarian = document.getElementById('tbody-laba-harian');
+            const labaHarian = calculateLabaHarian();
+            tbodyLabaHarian.innerHTML = '';
+
+            if (labaHarian.length === 0) {
+                tbodyLabaHarian.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">Belum ada transaksi</td></tr>`;
+            } else {
+                labaHarian.forEach((item, index) => {
+                    tbodyLabaHarian.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3 px-4 text-center">${index + 1}</td>
+                            <td class="py-3 px-4 font-semibold">${item.tgl}</td>
+                            <td class="py-3 px-4 text-right">${formatRp(item.totalBeli)}</td>
+                            <td class="py-3 px-4 text-right">${formatRp(item.totalJual)}</td>
+                            <td class="py-3 px-4 text-right font-bold ${item.laba >= 0 ? 'text-emerald-600' : 'text-red-600'}">${formatRp(item.laba)}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // Render Laba Bulanan
+            const tbodyLabaBulanan = document.getElementById('tbody-laba-bulanan');
+            const labaBulanan = calculateLabaBulanan();
+            tbodyLabaBulanan.innerHTML = '';
+
+            if (labaBulanan.length === 0) {
+                tbodyLabaBulanan.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">Belum ada transaksi</td></tr>`;
+            } else {
+                labaBulanan.forEach((item, index) => {
+                    tbodyLabaBulanan.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3 px-4 text-center">${index + 1}</td>
+                            <td class="py-3 px-4 font-semibold">${item.bulan}</td>
+                            <td class="py-3 px-4 text-right">${formatRp(item.totalBeli)}</td>
+                            <td class="py-3 px-4 text-right">${formatRp(item.totalJual)}</td>
+                            <td class="py-3 px-4 text-right font-bold ${item.laba >= 0 ? 'text-indigo-600' : 'text-red-600'}">${formatRp(item.laba)}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function toggleLabaSection(type) {
+            const secHarian = document.getElementById('section-laba-harian');
+            const secBulanan = document.getElementById('section-laba-bulanan');
+
+            if (type === 'harian') {
+                secHarian.classList.toggle('hidden');
+            } else if (type === 'bulanan') {
+                secBulanan.classList.toggle('hidden');
+            }
+        }
+
+        // --- CHARTS GENERATION (CHART.JS) ---
+        function renderCharts() {
+            const stokData = calculateStok();
+            const labels = stokData.map(s => s.namaBarang);
+            const dataBeli = stokData.map(s => s.totalBeli);
+            const dataJual = stokData.map(s => s.totalJual);
+            const dataStok = stokData.map(s => Math.max(0, s.stok));
+
+            // Bar Chart (Pembelian vs Penjualan)
+            const ctxBar = document.getElementById('chartPembelianPenjualan').getContext('2d');
+            if (chartBarInstance) chartBarInstance.destroy();
+
+            chartBarInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: labels.length ? labels : ['Belum Ada Barang'],
+                    datasets: [
+                        {
+                            label: 'Pembelian (Qty)',
+                            data: dataBeli.length ? dataBeli : [0],
+                            backgroundColor: '#3b82f6',
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Penjualan (Qty)',
+                            data: dataJual.length ? dataJual : [0],
+                            backgroundColor: '#10b981',
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 } }
+                    }
+                }
+            });
+
+            // Donut Chart (Stok Barang)
+            const ctxDonut = document.getElementById('chartDonutStok').getContext('2d');
+            if (chartDonutInstance) chartDonutInstance.destroy();
+
+            chartDonutInstance = new Chart(ctxDonut, {
+                type: 'doughnut',
+                data: {
+                    labels: labels.length ? labels : ['Tidak ada stok'],
+                    datasets: [{
+                        data: dataStok.length ? dataStok : [1],
+                        backgroundColor: [
+                            '#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        // --- DASHBOARD DETAIL MODALS ---
+        function openDashboardModal(type) {
+            const modal = document.getElementById('modal-dashboard-detail');
+            const title = document.getElementById('modal-dash-title');
+            const content = document.getElementById('modal-dash-content');
+
+            content.innerHTML = '';
+            modal.classList.remove('hidden');
+
+            if (type === 'pembelian') {
+                title.innerText = 'Rincian Panel Pembelian';
+                content.innerHTML = `
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs md:text-sm text-left">
+                            <thead class="bg-slate-100 text-slate-600 font-semibold uppercase">
+                                <tr>
+                                    <th class="p-3 text-center">No</th>
+                                    <th class="p-3">Tgl Beli</th>
+                                    <th class="p-3">Nama Barang</th>
+                                    <th class="p-3 text-center">Qty</th>
+                                    <th class="p-3 text-center">Satuan</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${appState.pembelian.map((p, i) => `
+                                    <tr>
+                                        <td class="p-3 text-center">${i + 1}</td>
+                                        <td class="p-3">${p.tglBeli || '-'}</td>
+                                        <td class="p-3 font-semibold">${p.namaBarang}</td>
+                                        <td class="p-3 text-center">${p.qty}</td>
+                                        <td class="p-3 text-center">${p.satuan || '-'}</td>
+                                    </tr>
+                                `).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">Kosong</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } else if (type === 'penjualan') {
+                title.innerText = 'Rincian Panel Penjualan';
+                content.innerHTML = `
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs md:text-sm text-left">
+                            <thead class="bg-slate-100 text-slate-600 font-semibold uppercase">
+                                <tr>
+                                    <th class="p-3 text-center">No</th>
+                                    <th class="p-3">Tgl Jual</th>
+                                    <th class="p-3">Nama Barang</th>
+                                    <th class="p-3 text-center">Qty</th>
+                                    <th class="p-3 text-center">Satuan</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${appState.penjualan.map((j, i) => `
+                                    <tr>
+                                        <td class="p-3 text-center">${i + 1}</td>
+                                        <td class="p-3">${j.tglJual || '-'}</td>
+                                        <td class="p-3 font-semibold">${j.namaBarang}</td>
+                                        <td class="p-3 text-center">${j.qty}</td>
+                                        <td class="p-3 text-center">${j.satuan || '-'}</td>
+                                    </tr>
+                                `).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">Kosong</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } else if (type === 'stok') {
+                title.innerText = 'Rincian Panel Stok Barang';
+                const stokData = calculateStok();
+                content.innerHTML = `
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs md:text-sm text-left">
+                            <thead class="bg-slate-100 text-slate-600 font-semibold uppercase">
+                                <tr>
+                                    <th class="p-3 text-center">No</th>
+                                    <th class="p-3">Tgl Update</th>
+                                    <th class="p-3">Nama Barang</th>
+                                    <th class="p-3 text-center">Qty Stok</th>
+                                    <th class="p-3 text-center">Satuan</th>
+                                    <th class="p-3 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${stokData.map((s, i) => `
+                                    <tr>
+                                        <td class="p-3 text-center">${i + 1}</td>
+                                        <td class="p-3">${s.lastUpdate || '-'}</td>
+                                        <td class="p-3 font-semibold">${s.namaBarang}</td>
+                                        <td class="p-3 text-center font-bold">${s.stok}</td>
+                                        <td class="p-3 text-center">${s.satuan}</td>
+                                        <td class="p-3 text-center">${s.status}</td>
+                                    </tr>
+                                `).join('') || '<tr><td colspan="6" class="p-4 text-center text-slate-400">Kosong</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } else if (type === 'laba') {
+                title.innerText = 'Rincian Panel Laba';
+                const labaHarian = calculateLabaHarian();
+                const labaBulanan = calculateLabaBulanan();
+
+                content.innerHTML = `
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm mb-2">Tabel Laba Per Hari (Hari Ini / All)</h4>
+                            <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                                <table class="w-full text-xs md:text-sm text-left">
+                                    <thead class="bg-indigo-50 text-indigo-900 font-semibold uppercase">
+                                        <tr>
+                                            <th class="p-3 text-center">No</th>
+                                            <th class="p-3">Tanggal</th>
+                                            <th class="p-3 text-right">Total Harga Beli</th>
+                                            <th class="p-3 text-right">Total Harga Jual</th>
+                                            <th class="p-3 text-right">Laba</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        ${labaHarian.map((lh, i) => `
+                                            <tr>
+                                                <td class="p-3 text-center">${i + 1}</td>
+                                                <td class="p-3 font-medium">${lh.tgl}</td>
+                                                <td class="p-3 text-right">${formatRp(lh.totalBeli)}</td>
+                                                <td class="p-3 text-right">${formatRp(lh.totalJual)}</td>
+                                                <td class="p-3 text-right font-bold text-emerald-600">${formatRp(lh.laba)}</td>
+                                            </tr>
+                                        `).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">Kosong</td></tr>'}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm mb-2">Tabel Laba Per Bulan (Bulan Sekarang / All)</h4>
+                            <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                                <table class="w-full text-xs md:text-sm text-left">
+                                    <thead class="bg-purple-50 text-purple-900 font-semibold uppercase">
+                                        <tr>
+                                            <th class="p-3 text-center">No</th>
+                                            <th class="p-3">Bulan</th>
+                                            <th class="p-3 text-right">Total Harga Beli Per Bulan</th>
+                                            <th class="p-3 text-right">Total Harga Jual Per Bulan</th>
+                                            <th class="p-3 text-right">Laba</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        ${labaBulanan.map((lb, i) => `
+                                            <tr>
+                                                <td class="p-3 text-center">${i + 1}</td>
+                                                <td class="p-3 font-medium">${lb.bulan}</td>
+                                                <td class="p-3 text-right">${formatRp(lb.totalBeli)}</td>
+                                                <td class="p-3 text-right">${formatRp(lb.totalJual)}</td>
+                                                <td class="p-3 text-right font-bold text-purple-600">${formatRp(lb.laba)}</td>
+                                            </tr>
+                                        `).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">Kosong</td></tr>'}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function closeDashboardModal() {
+            document.getElementById('modal-dashboard-detail').classList.add('hidden');
+        }
+
+        // --- PEMBELIAN POPUP & MULTI-ITEM LOGIC ---
+        function openPembelianModal() {
+            editingPembelianId = null;
+            document.getElementById('modal-pembelian-title').innerText = 'Input Pembelian Barang';
+            document.getElementById('pembelian-items-container').innerHTML = '';
+            setDefaultDates();
+            addPembelianItemRow();
+            document.getElementById('modal-pembelian').classList.remove('hidden');
+        }
+
+        function closePembelianModal() {
+            document.getElementById('modal-pembelian').classList.add('hidden');
+        }
+
+        function addPembelianItemRow(data = {}) {
+            const container = document.getElementById('pembelian-items-container');
+            const rowId = 'row-p-' + Date.now() + Math.random().toString(36).substr(2, 4);
+
+            const row = document.createElement('div');
+            row.className = 'pembelian-row grid grid-cols-12 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 items-center';
+            row.id = rowId;
+
+            row.innerHTML = `
+                <div class="col-span-12 sm:col-span-4">
+                    <input type="text" placeholder="Nama Barang" value="${data.namaBarang || ''}" class="p-nama-barang w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="col-span-4 sm:col-span-2">
+                    <input type="number" placeholder="Qty" value="${data.qty || ''}" class="p-qty w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="col-span-4 sm:col-span-2">
+                    <input type="text" placeholder="Satuan (Pcs)" value="${data.satuan || 'Pcs'}" class="p-satuan w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="col-span-3 sm:col-span-3">
+                    <input type="number" placeholder="Harga Satuan (Optional)" value="${data.harsat || ''}" class="p-harsat w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="col-span-1 text-center">
+                    <button onclick="document.getElementById('${rowId}').remove()" class="text-red-500 hover:text-red-700 p-1"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+            container.appendChild(row);
+        }
+
+        function savePembelian() {
+            const tglBeli = document.getElementById('pembelian-tgl').value;
+            if (!tglBeli) {
+                alert('Silakan pilih tanggal pembelian.');
+                return;
+            }
+
+            const rows = document.querySelectorAll('.pembelian-row');
+            if (rows.length === 0) {
+                alert('Tambahkan setidaknya satu item barang.');
+                return;
+            }
+
+            const newItems = [];
+            let isValid = true;
+
+            rows.forEach(row => {
+                const namaBarang = row.querySelector('.p-nama-barang').value.trim();
+                const qty = Number(row.querySelector('.p-qty').value);
+                const satuan = row.querySelector('.p-satuan').value.trim() || 'Pcs';
+                const harsat = Number(row.querySelector('.p-harsat').value || 0);
+
+                if (!namaBarang || !qty) {
+                    isValid = false;
+                } else {
+                    newItems.push({
+                        id: editingPembelianId || ('PEMB-' + Date.now() + Math.random().toString(36).substr(2, 4)),
+                        tglBeli,
+                        namaBarang,
+                        qty,
+                        satuan,
+                        harsat,
+                        totalHarga: qty * harsat
+                    });
+                }
+            });
+
+            if (!isValid) {
+                alert('Nama barang dan Qty wajib diisi.');
+                return;
+            }
+
+            if (editingPembelianId) {
+                appState.pembelian = appState.pembelian.filter(p => p.id !== editingPembelianId);
+            }
+
+            appState.pembelian.push(...newItems);
+            saveData();
+            closePembelianModal();
+        }
+
+        function editPembelianItem(id) {
+            const item = appState.pembelian.find(p => p.id === id);
+            if (!item) return;
+
+            editingPembelianId = id;
+            document.getElementById('modal-pembelian-title').innerText = 'Edit Item Pembelian';
+            document.getElementById('pembelian-tgl').value = item.tglBeli || new Date().toISOString().split('T')[0];
+            
+            const container = document.getElementById('pembelian-items-container');
+            container.innerHTML = '';
+            addPembelianItemRow(item);
+
+            document.getElementById('modal-pembelian').classList.remove('hidden');
+        }
+
+        function deletePembelianItem(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus data pembelian ini?')) {
+                appState.pembelian = appState.pembelian.filter(p => p.id !== id);
+                saveData();
+            }
+        }
+
+        // --- PENJUALAN POPUP & MULTI-ITEM LOGIC ---
+        function openPenjualanModal() {
+            editingPenjualanId = null;
+            document.getElementById('modal-penjualan-title').innerText = 'Input Penjualan Barang';
+            document.getElementById('penjualan-items-container').innerHTML = '';
+            setDefaultDates();
+            addPenjualanItemRow();
+            document.getElementById('modal-penjualan').classList.remove('hidden');
+        }
+
+        function closePenjualanModal() {
+            document.getElementById('modal-penjualan').classList.add('hidden');
+        }
+
+        function getPembelianProductNames() {
+            const unique = {};
+            appState.pembelian.forEach(p => {
+                if (p.namaBarang) {
+                    unique[p.namaBarang] = p.satuan || 'Pcs';
+                }
+            });
+            return unique;
+        }
+
+        function addPenjualanItemRow(data = {}) {
+            const container = document.getElementById('penjualan-items-container');
+            const rowId = 'row-j-' + Date.now() + Math.random().toString(36).substr(2, 4);
+
+            const productsMap = getPembelianProductNames();
+            const productOptions = Object.keys(productsMap).map(name => `<option value="${name}" ${data.namaBarang === name ? 'selected' : ''}>${name}</option>`).join('');
+
+            const row = document.createElement('div');
+            row.className = 'penjualan-row grid grid-cols-12 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 items-center';
+            row.id = rowId;
+
+            row.innerHTML = `
+                <div class="col-span-12 sm:col-span-4">
+                    <select onchange="autoFillSatuanPenjualan(this)" class="j-nama-barang w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500 bg-white">
+                        <option value="">-- Pilih Barang Pembelian --</option>
+                        ${productOptions}
+                    </select>
+                </div>
+                <div class="col-span-4 sm:col-span-2">
+                    <input type="number" placeholder="Qty" value="${data.qty || ''}" class="j-qty w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div class="col-span-4 sm:col-span-2">
+                    <input type="text" placeholder="Satuan" value="${data.satuan || ''}" readonly class="j-satuan w-full border border-slate-200 bg-slate-100 rounded-lg px-2.5 py-1.5 text-xs text-slate-500">
+                </div>
+                <div class="col-span-3 sm:col-span-3">
+                    <input type="number" placeholder="Harga Satuan (Optional)" value="${data.harsat || ''}" class="j-harsat w-full border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div class="col-span-1 text-center">
+                    <button onclick="document.getElementById('${rowId}').remove()" class="text-red-500 hover:text-red-700 p-1"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+            container.appendChild(row);
+
+            if (data.namaBarang) {
+                const selectEl = row.querySelector('.j-nama-barang');
+                autoFillSatuanPenjualan(selectEl);
+            }
+        }
+
+        function autoFillSatuanPenjualan(selectEl) {
+            const selectedName = selectEl.value;
+            const parentRow = selectEl.closest('.penjualan-row');
+            const satuanInput = parentRow.querySelector('.j-satuan');
+
+            const productsMap = getPembelianProductNames();
+            if (selectedName && productsMap[selectedName]) {
+                satuanInput.value = productsMap[selectedName];
+            } else {
+                satuanInput.value = '';
+            }
+        }
+
+        function savePenjualan() {
+            const tglJual = document.getElementById('penjualan-tgl').value;
+            if (!tglJual) {
+                alert('Silakan pilih tanggal penjualan.');
+                return;
+            }
+
+            const rows = document.querySelectorAll('.penjualan-row');
+            if (rows.length === 0) {
+                alert('Tambahkan setidaknya satu item barang.');
+                return;
+            }
+
+            const newItems = [];
+            let isValid = true;
+
+            rows.forEach(row => {
+                const namaBarang = row.querySelector('.j-nama-barang').value;
+                const qty = Number(row.querySelector('.j-qty').value);
+                const satuan = row.querySelector('.j-satuan').value || 'Pcs';
+                const harsat = Number(row.querySelector('.j-harsat').value || 0);
+
+                if (!namaBarang || !qty) {
+                    isValid = false;
+                } else {
+                    newItems.push({
+                        id: editingPenjualanId || ('PENJ-' + Date.now() + Math.random().toString(36).substr(2, 4)),
+                        tglJual,
+                        namaBarang,
+                        qty,
+                        satuan,
+                        harsat,
+                        totalHarga: qty * harsat
+                    });
+                }
+            });
+
+            if (!isValid) {
+                alert('Pilih nama barang dan isi Qty dengan benar.');
+                return;
+            }
+
+            if (editingPenjualanId) {
+                appState.penjualan = appState.penjualan.filter(j => j.id !== editingPenjualanId);
+            }
+
+            appState.penjualan.push(...newItems);
+            saveData();
+            closePenjualanModal();
+        }
+
+        function editPenjualanItem(id) {
+            const item = appState.penjualan.find(j => j.id === id);
+            if (!item) return;
+
+            editingPenjualanId = id;
+            document.getElementById('modal-penjualan-title').innerText = 'Edit Item Penjualan';
+            document.getElementById('penjualan-tgl').value = item.tglJual || new Date().toISOString().split('T')[0];
+            
+            const container = document.getElementById('penjualan-items-container');
+            container.innerHTML = '';
+            addPenjualanItemRow(item);
+
+            document.getElementById('modal-penjualan').classList.remove('hidden');
+        }
+
+        function deletePenjualanItem(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus data penjualan ini?')) {
+                appState.penjualan = appState.penjualan.filter(j => j.id !== id);
+                saveData();
+            }
+        }
+
+        // --- EXPORT / IMPORT JSON ---
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `tokokita_backup_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const parsed = JSON.parse(event.target.result);
+                    if (parsed.pembelian || parsed.penjualan) {
+                        appState.pembelian = parsed.pembelian || [];
+                        appState.penjualan = parsed.penjualan || [];
+                        saveData();
+                        alert('Data JSON berhasil diimport!');
+                    } else {
+                        alert('Format JSON tidak sesuai.');
+                    }
+                } catch (err) {
+                    alert('Gagal membaca file JSON.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- EXPORT / IMPORT EXCEL (SHEETJS) ---
+        function exportExcel() {
+            const wb = XLSX.utils.book_new();
+
+            // Pembelian Sheet
+            const wsPembelian = XLSX.utils.json_to_sheet(appState.pembelian);
+            XLSX.utils.book_append_sheet(wb, wsPembelian, "Pembelian");
+
+            // Penjualan Sheet
+            const wsPenjualan = XLSX.utils.json_to_sheet(appState.penjualan);
+            XLSX.utils.book_append_sheet(wb, wsPenjualan, "Penjualan");
+
+            // Stok Sheet
+            const stokData = calculateStok();
+            const wsStok = XLSX.utils.json_to_sheet(stokData);
+            XLSX.utils.book_append_sheet(wb, wsStok, "Stok Barang");
+
+            XLSX.writeFile(wb, `Laporan_TokoKita_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        function importExcel(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const data = new Uint8Array(event.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+
+                    if (workbook.Sheets["Pembelian"]) {
+                        const parsedPembelian = XLSX.utils.sheet_to_json(workbook.Sheets["Pembelian"]);
+                        appState.pembelian = parsedPembelian;
+                    }
+                    if (workbook.Sheets["Penjualan"]) {
+                        const parsedPenjualan = XLSX.utils.sheet_to_json(workbook.Sheets["Penjualan"]);
+                        appState.penjualan = parsedPenjualan;
+                    }
+
+                    saveData();
+                    alert('Data Excel berhasil diimport!');
+                } catch (err) {
+                    alert('Gagal mengimpor file Excel.');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // --- SIDEBAR UTILITY ACTIONS ---
+        function shareApp() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Aplikasi TokoKita Realtime',
+                    text: 'Kelola penjualan, pembelian, dan stok barang toko bersama-sama secara realtime!',
+                    url: window.location.href
+                }).catch(() => {});
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert('Link aplikasi berhasil disalin ke clipboard!');
+            }
+        }
+
+        function downloadAPK() {
+            alert('Aplikasi ini adalah Progressive Web App (PWA). Anda dapat menambahkannya ke layar utama (Add to Home Screen) perangkat mobile Anda.');
+        }
+    </script>
+</body>
+</html>
