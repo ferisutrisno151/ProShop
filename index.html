@@ -278,9 +278,7 @@
                                 <th class="py-3 px-4 text-center w-28">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="tbody-pembelian" class="divide-y divide-slate-100 text-slate-700">
-                            <!-- Populated dynamically -->
-                        </tbody>
+                        <tbody id="tbody-pembelian" class="divide-y divide-slate-100 text-slate-700"></tbody>
                     </table>
                 </div>
             </div>
@@ -314,9 +312,7 @@
                                 <th class="py-3 px-4 text-center w-28">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="tbody-penjualan" class="divide-y divide-slate-100 text-slate-700">
-                            <!-- Populated dynamically -->
-                        </tbody>
+                        <tbody id="tbody-penjualan" class="divide-y divide-slate-100 text-slate-700"></tbody>
                     </table>
                 </div>
             </div>
@@ -349,9 +345,7 @@
                                 <th class="py-3 px-4 text-center">Status</th>
                             </tr>
                         </thead>
-                        <tbody id="tbody-stok-main" class="divide-y divide-slate-100 text-slate-700">
-                            <!-- Populated dynamically -->
-                        </tbody>
+                        <tbody id="tbody-stok-main" class="divide-y divide-slate-100 text-slate-700"></tbody>
                     </table>
                 </div>
             </div>
@@ -503,6 +497,7 @@
 
     <!-- JAVASCRIPT LOGIC & FIREBASE CONFIGURATION -->
     <script>
+        // --- CONFIG FIREBASE DENGAN URL SINGAPURA REGION ---
         const firebaseConfig = {
             apiKey: "AIzaSyAO7PhqkktQBH310DDFM8WD5SZRzVbX8wU",
             authDomain: "proshop-a961d.firebaseapp.com",
@@ -510,7 +505,7 @@
             storageBucket: "proshop-a961d.firebasestorage.app",
             messagingSenderId: "44671725755",
             appId: "1:44671725755:web:fe9c858dcb14041c39399e",
-            databaseURL: "https://proshop-a961d-default-rtdb.firebaseio.com"
+            databaseURL: "https://proshop-a961d-default-rtdb.asia-southeast1.firebasedatabase.app"
         };
 
         let db = null;
@@ -677,18 +672,19 @@
                 
                 db.ref('tokokita_data').on('value', (snapshot) => {
                     const val = snapshot.val();
-                    if (val) {
+                    if (val && (val.pembelian || val.penjualan)) {
                         appState.pembelian = val.pembelian || [];
                         appState.penjualan = val.penjualan || [];
                         saveToLocalStorage();
                         renderAll();
                         updateConnectionStatus('connected', 'Realtime Aktif');
                     } else {
-                        // Jika cloud kosong tapi local ada isinya, unggah ke cloud
+                        // Jika Cloud kosong tapi local ada isinya, unggah data local ke cloud
                         if (appState.pembelian.length > 0 || appState.penjualan.length > 0) {
                             saveData();
+                        } else {
+                            updateConnectionStatus('connected', 'Cloud Siap');
                         }
-                        updateConnectionStatus('connected', 'Cloud Siap');
                     }
                 }, (error) => {
                     console.error("Firebase sync error:", error);
