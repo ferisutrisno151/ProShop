@@ -1676,9 +1676,9 @@
 </div>
 
 <script>
-  // URL Google Apps Script Web App Anda yang aktif
+  <script>
   const GAS_URL = "https://script.google.com/macros/s/AKfycbwfVxwLIuqUotQ9b_2jitaU07PppMAYPRyluj_CwiPXUS4WuMAG6Em3Dbuv_HHiHvn9AQ/exec"; 
-  const SESSION_DURATION = 8 * 60 * 60 * 1000; // Sesi aktif selama 8 jam
+  const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 Jam
   let checkInterval = null;
 
   function verifyProShopAuth() {
@@ -1686,10 +1686,10 @@
     const now = new Date().getTime();
 
     if (session && session.approved && (now - session.timestamp < SESSION_DURATION)) {
-      // Sesi valid di bawah 8 jam -> Buka aplikasi normal
+      // Sesi masih aktif
       document.getElementById('auth-modal').style.display = 'none';
     } else {
-      // Sesi habis atau belum diizinkan -> Tampilkan pop-up login
+      // Belum ada izin / sesi habis -> Tampilkan modal paksa
       document.getElementById('auth-modal').style.display = 'flex';
       if (session && session.requestId) {
         startPollingStatus(session.requestId);
@@ -1760,7 +1760,7 @@
           
           const session = JSON.parse(localStorage.getItem('proshop_auth_session')) || {};
           session.approved = true;
-          session.timestamp = new Date().getTime(); // Reset hitung mundur 8 jam
+          session.timestamp = new Date().getTime();
           localStorage.setItem('proshop_auth_session', JSON.stringify(session));
 
           setTimeout(() => {
@@ -1781,12 +1781,11 @@
         }
       })
       .catch(err => console.log(err));
-    }, 4000); // Cek status otomatis setiap 4 detik
+    }, 4000);
   }
 
-  window.addEventListener('DOMContentLoaded', () => {
-    verifyProShopAuth();
-  });
+  // EKsekusi otomatis saat dokumen selesai dimuat
+  document.addEventListener("DOMContentLoaded", verifyProShopAuth);
 </script>
 </body>
 </html>
