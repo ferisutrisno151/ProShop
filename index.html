@@ -21,6 +21,10 @@
             background-color: rgba(0, 0, 0, 0.5);
             transition: opacity 0.3s ease;
         }
+        /* Mencegah teks bertumpuk / warptext di dalam kolom tabel */
+        table th, table td {
+            white-space: nowrap;
+        }
         /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
@@ -61,7 +65,7 @@
                 </div>
             </div>
 
-            <!-- Header Action Controls (Refresh moved to extreme top-right) -->
+            <!-- Header Action Controls (Refresh at extreme top-right) -->
             <div class="flex items-center space-x-2">
                 <button id="btn-export-excel" class="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition shadow-sm">
                     <i class="fas fa-file-excel"></i>
@@ -114,7 +118,7 @@
                 </button>
             </nav>
 
-            <!-- Data Management & Share placed right under Stok & Laba (inside sidebar) -->
+            <!-- Data Management & Share placed right under Stok & Laba -->
             <div class="p-3 border-t border-slate-800 space-y-2">
                 <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Manajemen Data & Share</div>
                 <button id="btn-export-json" class="w-full flex items-center justify-between px-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 rounded-lg transition">
@@ -139,7 +143,7 @@
             </div>
         </div>
 
-        <!-- Creator Identity Footer at the bottom of sidebar -->
+        <!-- Creator Identity Footer -->
         <div class="p-4 border-t border-slate-800 bg-slate-950 text-center">
             <p class="text-xs text-slate-400 font-medium">Dibuat oleh:</p>
             <p class="text-xs font-bold text-indigo-400 mt-0.5">Feri Sutrisno</p>
@@ -262,10 +266,10 @@
                 </button>
             </div>
 
-            <!-- Table Pembelian with Horizontal Scroll (overflow-x-auto) -->
+            <!-- Table Pembelian with Horizontal Scroll & Nowrap -->
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-[700px] text-left text-xs md:text-sm">
+                    <table class="w-full min-w-[800px] text-left text-xs md:text-sm">
                         <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
                             <tr>
                                 <th class="py-3 px-4 w-12 text-center">No</th>
@@ -299,10 +303,10 @@
                 </button>
             </div>
 
-            <!-- Table Penjualan with Horizontal Scroll (overflow-x-auto) -->
+            <!-- Table Penjualan with Horizontal Scroll & Nowrap -->
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-[700px] text-left text-xs md:text-sm">
+                    <table class="w-full min-w-[800px] text-left text-xs md:text-sm">
                         <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
                             <tr>
                                 <th class="py-3 px-4 w-12 text-center">No</th>
@@ -332,13 +336,13 @@
                 </div>
             </div>
 
-            <!-- Tabel Stok Barang with Horizontal Scroll -->
+            <!-- Tabel Stok Barang with Horizontal Scroll & Nowrap -->
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
                 <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                     <h3 class="font-bold text-slate-800 text-sm">Status Inventaris Barang</h3>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-[750px] text-left text-xs md:text-sm">
+                    <table class="w-full min-w-[850px] text-left text-xs md:text-sm">
                         <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
                             <tr>
                                 <th class="py-3 px-4 w-12 text-center">No</th>
@@ -387,13 +391,13 @@
                 </button>
             </div>
 
-            <!-- Tabel Laba Per Hari (Collapsible) with Horizontal Scroll -->
+            <!-- Tabel Laba Per Hari (Collapsible) with Horizontal Scroll & Nowrap -->
             <div id="section-laba-harian" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hidden">
                 <div class="px-5 py-4 border-b border-slate-100 bg-indigo-50/50 flex justify-between items-center">
                     <h3 class="font-bold text-indigo-900 text-sm"><i class="fas fa-calendar-day mr-2"></i>Laba Per Hari (Hari Ini / All Days)</h3>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-[650px] text-left text-xs md:text-sm">
+                    <table class="w-full min-w-[700px] text-left text-xs md:text-sm">
                         <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
                             <tr>
                                 <th class="py-3 px-4 w-12 text-center">No</th>
@@ -410,13 +414,13 @@
                 </div>
             </div>
 
-            <!-- Tabel Laba Per Bulan (Collapsible) with Horizontal Scroll -->
+            <!-- Tabel Laba Per Bulan (Collapsible) with Horizontal Scroll & Nowrap -->
             <div id="section-laba-bulanan" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hidden">
                 <div class="px-5 py-4 border-b border-slate-100 bg-purple-50/50 flex justify-between items-center">
                     <h3 class="font-bold text-purple-900 text-sm"><i class="fas fa-calendar-alt mr-2"></i>Laba Per Bulan</h3>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-[650px] text-left text-xs md:text-sm">
+                    <table class="w-full min-w-[700px] text-left text-xs md:text-sm">
                         <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-semibold">
                             <tr>
                                 <th class="py-3 px-4 w-12 text-center">No</th>
@@ -692,20 +696,30 @@
         // --- FIREBASE & LOCAL STORAGE DATA SYNC ---
         function initFirebaseOrLocal() {
             if (isFirebaseOnline && db) {
+                // Load data pertama kali tanpa menunggu event 'value' kosong
+                db.ref('tokokita_data').once('value').then((snapshot) => {
+                    const val = snapshot.val();
+                    if (val) {
+                        appState.pembelian = val.pembelian || [];
+                        appState.penjualan = val.penjualan || [];
+                        saveToLocalStorage();
+                    } else {
+                        loadFromLocalStorage();
+                    }
+                    renderAll();
+                }).catch(() => {
+                    loadFromLocalStorage();
+                });
+
+                // Listener realtime untuk perubahan dari perangkat lain
                 db.ref('tokokita_data').on('value', (snapshot) => {
                     const val = snapshot.val();
                     if (val) {
                         appState.pembelian = val.pembelian || [];
                         appState.penjualan = val.penjualan || [];
-                    } else {
-                        appState.pembelian = [];
-                        appState.penjualan = [];
+                        saveToLocalStorage();
+                        renderAll();
                     }
-                    saveToLocalStorage();
-                    renderAll();
-                }, (error) => {
-                    console.warn("Firebase listener error. Switching to localStorage.", error);
-                    loadFromLocalStorage();
                 });
             } else {
                 loadFromLocalStorage();
@@ -746,6 +760,7 @@
                     if (val) {
                         appState.pembelian = val.pembelian || [];
                         appState.penjualan = val.penjualan || [];
+                        saveToLocalStorage();
                     }
                     renderAll();
                     if (icon) icon.classList.remove('fa-spin');
