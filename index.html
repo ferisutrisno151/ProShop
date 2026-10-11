@@ -155,9 +155,9 @@
 
         <!-- Creator Identity Footer -->
         <div class="p-4 border-t border-slate-800 bg-slate-950 text-center">
-            <p class="text-xs text-slate-400 font-medium">Created By:</p>
+            <p class="text-xs text-slate-400 font-medium">Dibuat oleh:</p>
             <p class="text-xs font-bold text-indigo-400 mt-0.5">Feri Sutrisno</p>
-            <p class="text-xxs text-slate-500 mt-1">© 2026 ProShop</p>
+            <p class="text-xxs text-slate-500 mt-1">© 2026 ProShop TokoKita</p>
         </div>
     </aside>
 
@@ -283,7 +283,7 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
                     <h2 class="text-xl font-bold text-slate-800">Data Pembelian</h2>
-                    <p class="text-xs text-slate-500">Riwayat Pembelian</p>
+                    <p class="text-xs text-slate-500">Kelola riwayat barang masuk dari supplier</p>
                 </div>
                 <button onclick="openPembelianModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition flex items-center space-x-2 shadow-sm">
                     <i class="fas fa-plus"></i>
@@ -317,7 +317,7 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
                     <h2 class="text-xl font-bold text-slate-800">Data Penjualan</h2>
-                    <p class="text-xs text-slate-500">Transaksi Penjualan</p>
+                    <p class="text-xs text-slate-500">Kelola transaksi barang keluar ke konsumen</p>
                 </div>
                 <button onclick="openPenjualanModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition flex items-center space-x-2 shadow-sm">
                     <i class="fas fa-plus"></i>
@@ -351,7 +351,7 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div>
                     <h2 class="text-xl font-bold text-slate-800">Stok Barang & Analisis Laba</h2>
-                    <p class="text-xs text-slate-500">Stok Barang & Keuntungan</p>
+                    <p class="text-xs text-slate-500">Perhitungan inventaris dan keuntungan otomatis</p>
                 </div>
                 <button onclick="openTanamModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition flex items-center space-x-2 shadow-sm">
                     <i class="fas fa-hand-holding-usd"></i>
@@ -389,7 +389,7 @@
                             <i class="fas fa-calendar-day text-lg"></i>
                         </div>
                         <div>
-                            <h4 class="font-bold text-slate-800 text-sm">Laba Per Hari</h4>
+                            <h4 class="font-bold text-slate-800 text-sm">Lihat Tabel Laba Per Hari</h4>
                             <p class="text-xs text-slate-500">Rekapitulasi transaksi harian</p>
                         </div>
                     </div>
@@ -402,7 +402,7 @@
                             <i class="fas fa-calendar-alt text-lg"></i>
                         </div>
                         <div>
-                            <h4 class="font-bold text-slate-800 text-sm">Laba Per Bulan</h4>
+                            <h4 class="font-bold text-slate-800 text-sm">Lihat Tabel Laba Per Bulan</h4>
                             <p class="text-xs text-slate-500">Rekapitulasi akumulasi bulanan</p>
                         </div>
                     </div>
@@ -457,7 +457,7 @@
                         <i class="fas fa-vault text-2xl text-indigo-200"></i>
                     </div>
                     <div>
-                        <p class="text-xs font-medium text-indigo-200 uppercase tracking-wider">Modal Awal & Sisa Modal</p>
+                        <p class="text-xs font-medium text-indigo-200 uppercase tracking-wider">Panel Modal Awal & Sisa Modal</p>
                         <h3 id="panel-sisa-modal-val" class="text-xl font-bold mt-0.5">Rp 0</h3>
                     </div>
                 </div>
@@ -949,25 +949,21 @@
         }
 
         function calculateLabaBulanan() {
-  const map = {};
-  appState.pembelian.forEach(p => {
-    if (!p.tglBeli) return;
-    const month = p.tglBeli.substring(0, 7);
-    if (!map[month]) map[month] = { bulan: month, totalBeli: 0, totalJual: 0 };
-    map[month].totalBeli += Number(p.totalHarga || (p.qty * p.harsat) || 0);
-  });
-  appState.penjualan.forEach(j => {
-    if (!j.tglJual) return;
-    const month = j.tglJual.substring(0, 7);
-    if (!map[month]) map[month] = { bulan: month, totalBeli: 0, totalJual: 0 };
-    map[month].totalJual += Number(j.totalHargaJual || (j.qty * j.harsat) || 0);
-  });
-  return Object.values(map).sort((a, b) => b.bulan.localeCompare(a.bulan)).map(item => ({
-    ...item,
-    laba: item.totalJual - item.totalBeli
-  }));
-}
-
+            const map = {};
+            appState.pembelian.forEach(p => {
+                if (!p.tglBeli) return;
+                const month = p.tglBeli.substring(0, 7);
+                if (!map[month]) map[month] = { bulan: month, totalBeli: 0, totalJual: 0 };
+                map[month].totalBeli += Number(p.totalHarga || (p.qty * p.harsat) || 0);
+            });
+            appState.penjualan.forEach(j => {
+                if (!j.tglJual) return;
+                const month = j.tglJual.substring(0, 7);
+                if (!map[month]) map[month] = { bulan: month, totalBeli: 0, totalJual: 0 };
+                map[month].totalBeli += Number(j.totalHarga || (j.qty * j.harsat) || 0);
+            });
+            return Object.values(map).sort((a, b) => b.bulan.localeCompare(a.bulan)).map(item => ({ ...item, laba: item.totalJual - item.totalBeli }));
+        }
 
         function renderAll() {
             renderDashboardCards();
@@ -1662,120 +1658,5 @@
             }
         }
     </script>
-  <!-- MODAL & SCRIPT OTORISASI AKSES (PROSHOP) -->
-<div id="authModal" class="fixed inset-0 bg-slate-900 bg-opacity-95 z-50 flex items-center justify-center p-4">
-  <div class="w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl text-center">
-    <div class="w-16 h-16 bg-purple-600/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-purple-500/30 text-purple-400 text-2xl">
-      <i class="fa-solid fa-shield-halved"></i>
-    </div>
-    
-    <h3 class="text-xl font-bold text-white mb-1">Otoritas Akses ProShop</h3>
-    <p id="authStatusText" class="text-slate-400 text-sm mb-6">Masukkan nama Anda untuk meminta izin akses ke Admin.</p>
-
-    <div id="authFormArea">
-      <input type="text" id="inputAuthName" placeholder="Nama Lengkap Anda" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 mb-4 text-sm">
-      <button onclick="requestAccess()" id="btnSubmitAuth" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-purple-600/30 text-sm cursor-pointer">
-        <span>Kirim Permintaan Akses</span>
-      </button>
-    </div>
-
-    <div id="authWaitingArea" class="hidden">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-purple-500 border-t-transparent mb-3"></div>
-      <p class="text-purple-300 font-medium text-sm">Menunggu Konfirmasi Admin via Email...</p>
-      <p class="text-slate-500 text-xs mt-2">Halaman akan otomatis terbuka setelah Admin menekan tombol [TERIMA AKSES] di email.</p>
-    </div>
-  </div>
-</div>
-
-<script>
-  const GAS_AUTH_URL = "https://script.google.com/macros/s/AKfycby5Wg5YogMgMXhgmL0-cWUprFauwoGEPpVQuYT0P0SUuB5N6u2YqBHnwpt0uruMb0pG/exec";
-  let checkInterval = null;
-
-  function initAuthCheck() {
-    const savedSession = localStorage.getItem('proshop_session_id');
-    const sessionTime = localStorage.getItem('proshop_session_time');
-
-    if (savedSession && sessionTime) {
-      const elapsedHours = (new Date().getTime() - parseInt(sessionTime)) / (1000 * 60 * 60);
-      if (elapsedHours < 8) {
-        // Jika sesi masih di bawah 8 jam, langsung izinkan masuk tanpa pop-up
-        checkSessionStatus(savedSession, true);
-        return;
-      }
-    }
-
-    // Jika tidak ada sesi atau sudah > 8 jam, WAJIB MUNCULKAN POP-UP
-    document.getElementById('authModal').classList.remove('hidden');
-  }
-
-  function requestAccess() {
-    const name = document.getElementById('inputAuthName').value.trim();
-    if (!name) {
-      alert('Harap masukkan nama Anda terlebih dahulu!');
-      return;
-    }
-
-    const sessionId = "session_" + new Date().getTime() + "_" + Math.floor(Math.random() * 1000);
-    localStorage.setItem('proshop_session_id', sessionId);
-
-    document.getElementById('authFormArea').classList.add('hidden');
-    document.getElementById('authWaitingArea').classList.remove('hidden');
-    document.getElementById('authStatusText').innerText = "Permintaan dikirim ke Admin. Menunggu konfirmasi...";
-
-    fetch(GAS_AUTH_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name, session: sessionId })
-    }).then(() => {
-      startCheckingSession(sessionId);
-    });
-  }
-
-  function startCheckingSession(sessionId) {
-    if (checkInterval) clearInterval(checkInterval);
-    checkInterval = setInterval(() => {
-      checkSessionStatus(sessionId, false);
-    }, 4000);
-  }
-
-  function checkSessionStatus(sessionId, isAutoCheck) {
-    fetch(`${GAS_AUTH_URL}?action=check&session=${sessionId}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.status === 'ACCEPTED') {
-        if (checkInterval) clearInterval(checkInterval);
-        localStorage.setItem('proshop_session_time', new Date().getTime().toString());
-        document.getElementById('authModal').classList.add('hidden');
-
-        if (typeof window.loadDataRealtime === 'function') {
-          window.loadDataRealtime();
-        }
-      } else if (data.status === 'REJECTED') {
-        if (checkInterval) clearInterval(checkInterval);
-        localStorage.removeItem('proshop_session_id');
-        localStorage.removeItem('proshop_session_time');
-
-        document.getElementById('authFormArea').classList.remove('hidden');
-        document.getElementById('authWaitingArea').classList.add('hidden');
-        document.getElementById('authStatusText').innerHTML = '<span class="text-red-400 font-bold">Akses Ditolak oleh Admin.</span>';
-        document.getElementById('authModal').classList.remove('hidden');
-      } else if (data.status === 'EXPIRED') {
-        if (checkInterval) clearInterval(checkInterval);
-        localStorage.removeItem('proshop_session_id');
-        localStorage.removeItem('proshop_session_time');
-        document.getElementById('authStatusText').innerText = "Sesi 8 jam Anda telah berakhir. Silakan minta akses kembali.";
-        document.getElementById('authWaitingArea').classList.add('hidden');
-        document.getElementById('authFormArea').classList.remove('hidden');
-        document.getElementById('authModal').classList.remove('hidden');
-      } else if (!isAutoCheck) {
-        document.getElementById('authModal').classList.remove('hidden');
-      }
-    })
-    .catch(err => console.error("Error checking auth:", err));
-  }
-
-  window.addEventListener('DOMContentLoaded', initAuthCheck);
-</script>
 </body>
 </html>
