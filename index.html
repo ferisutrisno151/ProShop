@@ -1697,6 +1697,10 @@
 const SESSION_DURATION = 8 * 60 * 60 * 1000; // Batasan durasi 8 Jam
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Pastikan EmailJS terinisialisasi langsung saat halaman dimuat
+    if (typeof emailjs !== 'undefined') {
+        emailjs.init("wYH4cVCenUWq54JXa");
+    }
     checkEmailSession();
 });
 
@@ -1716,6 +1720,7 @@ function checkEmailSession() {
         }
     }
 }
+
 function sendAccessRequestEmail() {
     const workerName = document.getElementById('input-worker-name').value.trim();
     if (!workerName) {
@@ -1726,7 +1731,6 @@ function sendAccessRequestEmail() {
     const deviceId = 'dev_' + Math.random().toString(36).substring(2, 9);
     localStorage.setItem('proshop_device_id', deviceId);
 
-    // Mengirim variabel yang cocok 100% dengan EmailJS
     const templateParams = {
         worker_name: workerName,
         user_name: workerName,
@@ -1735,7 +1739,13 @@ function sendAccessRequestEmail() {
         device_id: deviceId
     };
 
-    // Kirim via EmailJS
+    // Validasi ketersediaan EmailJS
+    if (typeof emailjs === 'undefined') {
+        alert('Library EmailJS belum dimuat. Periksa koneksi internet Anda.');
+        return;
+    }
+
+    // Kirim email via EmailJS
     emailjs.send('service_gock5cy', 'template_sd2i92o', templateParams)
         .then((response) => {
             console.log('Email Berhasil Terkirim!', response.status, response.text);
@@ -1751,14 +1761,16 @@ function sendAccessRequestEmail() {
                 });
             }
 
-            listenFirebaseApproval(deviceId);
-        })
-        .catch((error) => {
+        }, (error) => {
             console.error('EmailJS Error:', error);
-            alert('Gagal mengirim email: ' + (error.text || error.message || 'Periksa konfigurasi EmailJS'));
+            alert('Gagal mengirim email: ' + (error.text || error.message || 'Account not found / Kesalahan konfigurasi'));
         });
+
+    listenFirebaseApproval(deviceId);
 }
+
 function listenFirebaseApproval(deviceId) {
+    if (typeof database === 'undefined') return;
     const ref = database.ref('access_requests/' + deviceId);
     ref.on('value', (snapshot) => {
         const data = snapshot.val();
