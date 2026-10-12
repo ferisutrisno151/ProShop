@@ -1726,33 +1726,38 @@ function sendAccessRequestEmail() {
     const deviceId = 'dev_' + Math.random().toString(36).substring(2, 9);
     localStorage.setItem('proshop_device_id', deviceId);
 
+    // Mengirim variabel yang cocok 100% dengan EmailJS
     const templateParams = {
         worker_name: workerName,
         user_name: workerName,
-        time: new Date().toLocaleString(),
+        name: workerName,
+        time: new Date().toLocaleString('id-ID'),
         device_id: deviceId
     };
 
-    // Kirim email via EmailJS menggunakan data Anda
+    // Kirim via EmailJS
     emailjs.send('service_gock5cy', 'template_sd2i92o', templateParams)
-        .then(() => {
+        .then((response) => {
+            console.log('Email Berhasil Terkirim!', response.status, response.text);
             document.getElementById('auth-form-area').classList.add('hidden');
             document.getElementById('auth-waiting-area').classList.remove('hidden');
             
             // Simpan status pending ke Firebase Realtime Database
-            database.ref('access_requests/' + deviceId).set({
-                name: workerName,
-                status: 'pending',
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            });
+            if (typeof database !== 'undefined') {
+                database.ref('access_requests/' + deviceId).set({
+                    name: workerName,
+                    status: 'pending',
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+            }
 
             listenFirebaseApproval(deviceId);
-        }, (error) => {
-            alert('Gagal mengirim email, periksa koneksi atau konfigurasi EmailJS.');
-            console.error(error);
+        })
+        .catch((error) => {
+            console.error('EmailJS Error:', error);
+            alert('Gagal mengirim email: ' + (error.text || error.message || 'Periksa konfigurasi EmailJS'));
         });
 }
-
 function listenFirebaseApproval(deviceId) {
     const ref = database.ref('access_requests/' + deviceId);
     ref.on('value', (snapshot) => {
