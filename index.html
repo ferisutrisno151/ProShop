@@ -1662,5 +1662,135 @@
             }
         }
     </script>
+    <!-- MODAL OTORITAS AKSES PROSHOP -->
+<div id="auth-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center hidden">
+    <div class="bg-white rounded-2xl p-6 w-11/12 max-w-md shadow-2xl">
+        <div class="text-center mb-4">
+            <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-2 text-xl font-bold">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-800">Otoritas Masuk ProShop</h3>
+            <p class="text-xs text-slate-500 mt-1">Masukkan nama Anda untuk meminta izin akses kepada Administrator.</p>
+        </div>
+        <div id="auth-form-area">
+            <input type="text" id="input-worker-name" placeholder="Nama Lengkap / Rekan Kerja" class="w-full px-4 py-3 border border-slate-300 rounded-xl mb-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <button onclick="sendAccessRequestEmail()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition duration-200 text-sm">
+                Kirim Permintaan Akses
+            </button>
+        </div>
+        <div id="auth-waiting-area" class="hidden text-center py-4">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-3"></div>
+            <p class="text-sm font-medium text-slate-700">Permintaan terkirim ke Email Admin!</p>
+            <p class="text-xs text-slate-400 mt-1">Menunggu persetujuan Feri Sutrisno...</p>
+        </div>
+    </div>
+</div>
+    <script>
+    // --- SISTEM OTORITAS MASUK GOOGLE APPS SCRIPT (GAS) ---
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwISAdzOZ8t7r9M1AmSprohbWeeKcZmDwJEVoXNp0-YvmLpx9NClNS9LPPIvLevAUzL/exec"; 
+const SESSION_DURATION = 8 * 60 * 60 * 1000; // Batasan 8 Jam
+
+document.addEventListener("DOMContentLoaded", () => {
+    checkEmailSession();
+});
+
+function checkEmailSession() {
+    const session = JSON.parse(localStorage.getItem('proshop_email_session'));
+    const now = new Date().getTime();
+
+    if (session && session.status === 'approved' && (now - session.timestamp < SESSION_DURATION)) {
+        // Sesi aktif < 8 jam, sembunyikan modal
+        const modal = document.getElementById('auth-modal');
+        if (modal) modal.classList.add('hidden');
+    } else {
+        // Tampilkan modal otoritas masuk
+        const modal = document.getElementById('auth-modal');
+        if (modal) modal.classList.remove('hidden');
+        
+        const deviceId = localStorage.getItem('proshop_device_id');
+        if (deviceId) {
+            startCheckingStatus(deviceId);
+        }
+    }
+}
+
+function sendAccessRequestEmail() {
+    const workerNameInput = document.getElementById('input-worker-name');
+    if (!workerNameInput) return;
+    
+    const workerName = workerNameInput.value.trim();
+    if (!workerName) {
+        alert('Mohon masukkan nama Anda terlebih dahulu!');
+        return;
+    }
+
+    const deviceId = 'dev_' + Math.random().toString(36).substring(2, 9);
+    localStorage.setItem('proshop_device_id', deviceId);
+
+    const payload = {
+        worker_name: workerName,
+        time: new Date().toLocaleString('id-ID'),
+        device_id: deviceId
+    };
+
+    // Ubah tampilan modal ke status menunggu
+    const formArea = document.getElementById('auth-form-area');
+    const waitingArea = document.getElementById('auth-waiting-area');
+    if (formArea) formArea.classList.add('hidden');
+    if (waitingArea) waitingArea.classList.remove('hidden');
+
+    // Kirim permintaan ke Google Apps Script
+    fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(() => {
+        console.log('Permintaan akses terkirim ke server email.');
+        startCheckingStatus(deviceId);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Gagal mengirim permintaan. Periksa koneksi internet Anda.');
+        if (formArea) formArea.classList.remove('hidden');
+        if (waitingArea) waitingArea.classList.add('hidden');
+    });
+}
+
+let checkStatusInterval = null;
+function startCheckingStatus(deviceId) {
+    if (checkStatusInterval) clearInterval(checkStatusInterval);
+
+    checkStatusInterval = setInterval(() => {
+        fetch(`${GAS_WEB_APP_URL}?check_id=${deviceId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'approved') {
+                    clearInterval(checkStatusInterval);
+                    localStorage.setItem('proshop_email_session', JSON.stringify({
+                        status: 'approved',
+                        timestamp: new Date().getTime()
+                    }));
+                    const modal = document.getElementById('auth-modal');
+                    if (modal) modal.classList.add('hidden');
+                    location.reload(); // Refresh otomatis, aplikasi terbuka penuh
+                } else if (data.status === 'rejected') {
+                    clearInterval(checkStatusInterval);
+                    alert('Akses Anda ditolak oleh Administrator.');
+                    const formArea = document.getElementById('auth-form-area');
+                    const waitingArea = document.getElementById('auth-waiting-area');
+                    if (formArea) formArea.classList.remove('hidden');
+                    if (waitingArea) waitingArea.classList.add('hidden');
+                }
+            })
+            .catch(err => {
+                // Mengabaikan error jaringan minor saat polling background
+            });
+    }, 4000); // Mengecek status persetujuan setiap 4 detik
+}
+  </script>         
 </body>
 </html>
